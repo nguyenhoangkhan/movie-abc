@@ -31,7 +31,7 @@ export default function HomePage() {
             service
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
-            <Button asChild size="lg" className="bg-red-600 hover:bg-red-700">
+            <Button asChild size="lg">
               <Link
                 href="/movies"
                 className="flex items-center justify-center space-x-2"
