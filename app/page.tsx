@@ -105,49 +105,53 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {/* Guest Plan */}
-            <div className="card p-8 relative">
-              <h3 className="text-2xl font-semibold mb-4">Guest</h3>
-              <div className="text-4xl font-bold mb-4">Free</div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Limited movie access
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Up to 720p quality
-                </li>
-                <li className="flex items-center">
-                  <span className="text-red-500 mr-2">✗</span>
-                  No adult content
-                </li>
-              </ul>
+            <div className="card p-8 relative flex flex-col justify-between">
+              <div>
+                <h3 className="text-2xl font-semibold mb-4">Guest</h3>
+                <div className="text-4xl font-bold mb-4">Free</div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center">
+                    <span className="text-green-500 mr-2">✓</span>
+                    Limited movie access
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-green-500 mr-2">✓</span>
+                    Up to 720p quality
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-red-500 mr-2">✗</span>
+                    No adult content
+                  </li>
+                </ul>
+              </div>
               <Button asChild variant="outline" className="w-full">
                 <Link href="/movies">Browse Movies</Link>
               </Button>
             </div>
 
             {/* Free Plan */}
-            <div className="card p-8 relative">
-              <h3 className="text-2xl font-semibold mb-4">Free User</h3>
-              <div className="text-4xl font-bold mb-4">Free</div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>5 daily views
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Up to 720p quality
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Access to adult content
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Invite friends for bonus views
-                </li>
-              </ul>
+            <div className="card p-8 relative flex flex-col justify-between">
+              <div>
+                <h3 className="text-2xl font-semibold mb-4">Free User</h3>
+                <div className="text-4xl font-bold mb-4">Free</div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center">
+                    <span className="text-green-500 mr-2">✓</span>5 daily views
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-green-500 mr-2">✓</span>
+                    Up to 720p quality
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-green-500 mr-2">✓</span>
+                    Access to adult content
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-green-500 mr-2">✓</span>
+                    Invite friends for bonus views
+                  </li>
+                </ul>
+              </div>
               <Button
                 asChild
                 className="w-full bg-green-600 hover:bg-green-700"
@@ -157,39 +161,42 @@ export default function HomePage() {
             </div>
 
             {/* Premium Plan */}
-            <div className="card p-8 relative border-primary">
+            <div className="card p-8 relative flex flex-col justify-between border-primary">
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
                 Most Popular
               </div>
-              <h3 className="text-2xl font-semibold mb-4">Premium</h3>
-              <div className="text-4xl font-bold mb-4">
-                $9.99
-                <span className="text-lg font-normal text-muted-foreground">
-                  /month
-                </span>
+              <div>
+                {" "}
+                <h3 className="text-2xl font-semibold mb-4">Premium</h3>
+                <div className="text-4xl font-bold mb-4">
+                  $9.99
+                  <span className="text-lg font-normal text-muted-foreground">
+                    /month
+                  </span>
+                </div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center">
+                    <span className="text-green-500 mr-2">✓</span>
+                    Unlimited views
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-green-500 mr-2">✓</span>
+                    Up to 4K quality
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-green-500 mr-2">✓</span>
+                    All content access
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-green-500 mr-2">✓</span>
+                    No ads
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-green-500 mr-2">✓</span>
+                    Early access to new releases
+                  </li>
+                </ul>
               </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Unlimited views
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Up to 4K quality
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  All content access
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  No ads
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-500 mr-2">✓</span>
-                  Early access to new releases
-                </li>
-              </ul>
               <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
                 <Link href="/account">Upgrade Now</Link>
               </Button>
