@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { shouldResetDailyViews, canAccessResolution } from "@/lib/utils";
+import { kkphimService } from "@/lib/kkphim";
 
 export async function POST(
   request: NextRequest,
@@ -10,20 +11,20 @@ export async function POST(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    const { id: movieId } = await params;
+    const { id: movieSlug } = await params;
     const { resolution = "720p" } = await request.json();
 
-    // Check if movie exists
-    const movie = await prisma.movie.findUnique({
-      where: { id: movieId },
-    });
+    // Get movie from KKPhim API using slug
+    const movieDetail = await kkphimService.getMovieDetail(movieSlug);
 
-    if (!movie) {
+    if (!movieDetail.status) {
       return NextResponse.json(
         { success: false, error: "Movie not found" },
         { status: 404 }
       );
     }
+
+    const movie = kkphimService.convertToAppFormat(movieDetail.movie);
 
     // Check if adult content requires authentication
     if (movie.isAdult && !session?.user?.id) {
@@ -94,13 +95,15 @@ export async function POST(
           });
         }
 
-        // Record watch history
-        await prisma.watchHistory.create({
-          data: {
-            userId,
-            movieId,
-          },
-        });
+        // Record watch history if user is logged in
+        if (userId) {
+          await prisma.watchHistory.create({
+            data: {
+              userId,
+              movieId: movie.id, // Using KKPhim movie ID
+            },
+          });
+        }
       }
     } else {
       // Guest users have limited access
@@ -132,23 +135,50 @@ export async function POST(
       );
     }
 
-    // Get video URL for the requested resolution
-    const videoUrls = movie.videoUrls as any;
-    const videoUrl = videoUrls[resolution] || videoUrls["720p"];
+    // Get video URL from episodes
+    let videoUrl = "";
+    let availableResolutions: Record<string, string> = {};
+
+    if (movieDetail.movie.episodes && movieDetail.movie.episodes.length > 0) {
+      // Get the first server's first episode
+      const firstServer = movieDetail.movie.episodes[0];
+      if (firstServer.server_data && firstServer.server_data.length > 0) {
+        const firstEpisode = firstServer.server_data[0];
+
+        // Use m3u8 link if available, otherwise use embed link
+        videoUrl = firstEpisode.link_m3u8 || firstEpisode.link_embed;
+
+        // For simplicity, we'll use the same URL for all resolutions
+        // In a real app, you might want to extract different quality streams from the m3u8
+        availableResolutions = {
+          "1080p": videoUrl,
+          "720p": videoUrl,
+          "480p": videoUrl,
+          "360p": videoUrl,
+        };
+      }
+    }
+
+    if (!videoUrl) {
+      return NextResponse.json(
+        { success: false, error: "Video URL not available" },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
       data: {
-        videoUrl,
+        videoUrl: availableResolutions[resolution] || videoUrl,
         resolution,
         movie: {
           id: movie.id,
           title: movie.title,
           description: movie.description,
           thumbnail: movie.thumbnail,
-          genre: movie.genre,
+          genre: movie.genre.join(", "),
           rating: movie.rating,
-          releaseYear: movie.releaseYear,
+          releaseYear: movie.year,
         },
       },
     });

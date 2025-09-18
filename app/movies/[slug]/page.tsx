@@ -189,9 +189,11 @@ export default function MovieDetailPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Button size="lg">
-                <Play className="size-5 mr-2" />
-                Xem Ngay
+              <Button size="lg" asChild>
+                <Link href={`/watch/${params.slug}`}>
+                  <Play className="size-5 mr-2" />
+                  Xem Ngay
+                </Link>
               </Button>
 
               {movie.trailerUrl && (
