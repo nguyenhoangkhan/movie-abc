@@ -201,19 +201,19 @@ export default function ButtonShowcase() {
             <h3 className="text-lg font-medium">Movie Control Panel</h3>
             <div className="flex flex-wrap gap-3">
               <Button size="lg" className="bg-red-600 hover:bg-red-700">
-                <Play className="mr-2 h-5 w-5" />
+                <Play className="mr-2 size-5" />
                 Watch Now
               </Button>
               <Button size="lg" variant="outline">
-                <Plus className="mr-2 h-5 w-5" />
+                <Plus className="mr-2 size-5" />
                 Add to List
               </Button>
               <Button size="lg" variant="secondary">
-                <Heart className="mr-2 h-5 w-5" />
+                <Heart className="mr-2 size-5" />
                 Favorite
               </Button>
               <Button size="lg" variant="ghost">
-                <Share className="mr-2 h-5 w-5" />
+                <Share className="mr-2 size-5" />
                 Share
               </Button>
             </div>

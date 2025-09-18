@@ -15,6 +15,12 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "phimimg.com",
+        port: "",
+        pathname: "/upload/**",
+      },
     ],
   },
   env: {

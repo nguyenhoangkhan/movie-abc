@@ -90,7 +90,7 @@ export default function RegisterPage() {
                 Full Name
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 size-5 text-muted-foreground" />
                 <input
                   id="name"
                   name="name"
@@ -112,7 +112,7 @@ export default function RegisterPage() {
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 size-5 text-muted-foreground" />
                 <input
                   id="email"
                   name="email"
@@ -134,7 +134,7 @@ export default function RegisterPage() {
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 size-5 text-muted-foreground" />
                 <input
                   id="password"
                   name="password"
@@ -169,7 +169,7 @@ export default function RegisterPage() {
                 Confirm Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 size-5 text-muted-foreground" />
                 <input
                   id="confirmPassword"
                   name="confirmPassword"

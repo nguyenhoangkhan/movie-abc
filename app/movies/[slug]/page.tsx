@@ -189,8 +189,8 @@ export default function MovieDetailPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Button size="lg" className="bg-red-600 hover:bg-red-700">
-                <Play className="h-5 w-5 mr-2" />
+              <Button size="lg">
+                <Play className="size-5 mr-2" />
                 Xem Ngay
               </Button>
 
@@ -201,7 +201,7 @@ export default function MovieDetailPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <Film className="h-5 w-5 mr-2" />
+                    <Film className="size-5 mr-2" />
                     Trailer
                   </a>
                 </Button>

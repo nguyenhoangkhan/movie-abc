@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateInviteCode } from "@/lib/utils";
 import { z } from "zod";
 
 const inviteSchema = z.object({
@@ -75,8 +74,8 @@ export async function POST(request: NextRequest) {
       data: {
         inviterId: userId,
         email,
-        code: generateInviteCode(),
         status: "PENDING",
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       },
     });
 
@@ -87,8 +86,9 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "Invite sent successfully!",
       data: {
-        inviteCode: invite.code,
+        inviteId: invite.id,
         email: invite.email,
+        expiresAt: invite.expiresAt,
       },
     });
   } catch (error) {
@@ -122,10 +122,9 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         email: true,
-        code: true,
         status: true,
         createdAt: true,
-        acceptedAt: true,
+        expiresAt: true,
       },
     });
 

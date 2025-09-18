@@ -9,7 +9,6 @@ declare module "next-auth" {
       plan: string;
       dailyViews: number;
       bonusViews: number;
-      premiumUntil: Date | null;
     };
   }
 
@@ -20,7 +19,6 @@ declare module "next-auth" {
     plan: string;
     dailyViews: number;
     bonusViews: number;
-    premiumUntil: Date | null;
   }
 }
 
@@ -29,6 +27,5 @@ declare module "next-auth/jwt" {
     plan: string;
     dailyViews: number;
     bonusViews: number;
-    premiumUntil: Date | null;
   }
 }

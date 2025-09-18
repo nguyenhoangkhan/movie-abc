@@ -33,7 +33,7 @@ export default function BuyMeCoffee({
         className={`text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950 ${className}`}
         title="Buy me a coffee"
       >
-        <Coffee className="h-5 w-5" />
+        <Coffee className="size-5" />
       </Button>
     );
   }

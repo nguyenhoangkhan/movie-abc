@@ -65,7 +65,7 @@ export default function Navbar() {
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="flex items-center space-x-2"
                 >
-                  <User className="h-5 w-5" />
+                  <User className="size-5" />
                   <span className="hidden lg:block">{session.user?.name}</span>
                   {session.user?.plan === "PREMIUM" && (
                     <Crown className="h-4 w-4 text-yellow-500" />

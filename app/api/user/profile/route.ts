@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
         dailyViews: true,
         bonusViews: true,
         lastViewReset: true,
-        premiumUntil: true,
         createdAt: true,
+        updatedAt: true,
       },
     });
 

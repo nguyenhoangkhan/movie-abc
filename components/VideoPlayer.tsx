@@ -175,9 +175,9 @@ export default function VideoPlayer({
                 className="text-white hover:text-primary transition-colors h-8 w-8"
               >
                 {isPlaying ? (
-                  <Pause className="h-5 w-5" />
+                  <Pause className="size-5" />
                 ) : (
-                  <Play className="h-5 w-5" />
+                  <Play className="size-5" />
                 )}
               </Button>
 
@@ -189,9 +189,9 @@ export default function VideoPlayer({
                   className="text-white hover:text-primary transition-colors h-8 w-8"
                 >
                   {isMuted || volume === 0 ? (
-                    <VolumeX className="h-5 w-5" />
+                    <VolumeX className="size-5" />
                   ) : (
-                    <Volume2 className="h-5 w-5" />
+                    <Volume2 className="size-5" />
                   )}
                 </Button>
                 <input
@@ -216,7 +216,7 @@ export default function VideoPlayer({
                 size="icon"
                 className="text-white hover:text-primary transition-colors h-8 w-8"
               >
-                <Settings className="h-5 w-5" />
+                <Settings className="size-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -224,7 +224,7 @@ export default function VideoPlayer({
                 onClick={toggleFullscreen}
                 className="text-white hover:text-primary transition-colors h-8 w-8"
               >
-                <Maximize className="h-5 w-5" />
+                <Maximize className="size-5" />
               </Button>
             </div>
           </div>

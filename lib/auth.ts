@@ -56,7 +56,6 @@ export const authOptions: NextAuthOptions = {
           plan: user.plan,
           dailyViews: user.dailyViews,
           bonusViews: user.bonusViews,
-          premiumUntil: user.premiumUntil,
         };
       },
     }),
@@ -74,7 +73,6 @@ export const authOptions: NextAuthOptions = {
         token.plan = user.plan;
         token.dailyViews = user.dailyViews;
         token.bonusViews = user.bonusViews;
-        token.premiumUntil = user.premiumUntil;
       }
       return token;
     },
@@ -84,14 +82,12 @@ export const authOptions: NextAuthOptions = {
         session.user.plan = token.plan as string;
         session.user.dailyViews = token.dailyViews as number;
         session.user.bonusViews = token.bonusViews as number;
-        session.user.premiumUntil = token.premiumUntil as Date | null;
       }
       return session;
     },
   },
   pages: {
     signIn: "/login",
-    signUp: "/register",
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

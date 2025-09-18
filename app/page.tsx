@@ -36,7 +36,7 @@ export default function HomePage() {
                 href="/movies"
                 className="flex items-center justify-center space-x-2"
               >
-                <Play className="h-5 w-5" />
+                <Play className="size-5" />
                 <span>Start Watching</span>
               </Link>
             </Button>

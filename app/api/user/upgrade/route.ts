@@ -37,16 +37,6 @@ export async function POST(request: NextRequest) {
     const { plan, duration } = result.data;
     const userId = session.user.id;
 
-    // Calculate premium expiry
-    const now = new Date();
-    const premiumUntil = new Date(now);
-
-    if (duration === "monthly") {
-      premiumUntil.setMonth(premiumUntil.getMonth() + 1);
-    } else {
-      premiumUntil.setFullYear(premiumUntil.getFullYear() + 1);
-    }
-
     // Mock payment processing (replace with real payment gateway)
     const amount = duration === "monthly" ? 9.99 : 99.99;
 
@@ -55,11 +45,13 @@ export async function POST(request: NextRequest) {
       data: {
         userId,
         amount,
-        currency: "USD",
         type: "PREMIUM_UPGRADE",
         status: "COMPLETED", // In real app, this would be PENDING until payment confirms
-        description: `Premium ${duration} subscription`,
-        completedAt: new Date(),
+        metadata: JSON.stringify({
+          currency: "USD",
+          description: `Premium ${duration} subscription`,
+          duration,
+        }),
       },
     });
 
@@ -68,14 +60,13 @@ export async function POST(request: NextRequest) {
       where: { id: userId },
       data: {
         plan: "PREMIUM",
-        premiumUntil,
       },
       select: {
         id: true,
         email: true,
         name: true,
         plan: true,
-        premiumUntil: true,
+        updatedAt: true,
       },
     });
 
