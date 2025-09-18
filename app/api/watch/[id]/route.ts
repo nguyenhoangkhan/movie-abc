@@ -6,11 +6,11 @@ import { shouldResetDailyViews, canAccessResolution } from "@/lib/utils";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
-    const movieId = params.id;
+    const { id: movieId } = await params;
     const { resolution = "720p" } = await request.json();
 
     // Check if movie exists

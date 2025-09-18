@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Convert KKPhim movies to our app format
-      const movies = kkphimResponse.data.items.map((movie) =>
+      const movies = kkphimResponse.items.map((movie) =>
         kkphimService.convertToAppFormat(movie)
       );
 
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
         : movies.filter((movie) => !movie.isAdult);
 
       // Get pagination info from KKPhim response
-      const pagination = kkphimResponse.data.params?.pagination;
+      const pagination = kkphimResponse.pagination;
 
       return NextResponse.json({
         success: true,
