@@ -1,11 +1,6 @@
-import {
-  User,
-  UserPlan,
-  Movie,
-  WatchHistory,
-  Invite,
-  Payment,
-} from "@prisma/client";
+import { User, Movie, WatchHistory, Invite, Payment } from "@prisma/client";
+
+export type UserPlan = "GUEST" | "FREE" | "PREMIUM";
 
 export interface UserWithRelations extends User {
   watchHistory?: WatchHistory[];
@@ -13,7 +8,7 @@ export interface UserWithRelations extends User {
   payments?: Payment[];
 }
 
-export interface MovieWithUrls extends Movie {
+export interface MovieWithUrls extends Omit<Movie, "videoUrls"> {
   videoUrls: {
     "360p": string;
     "480p": string;
@@ -45,7 +40,6 @@ export interface AuthUser {
   plan: UserPlan;
   dailyViews: number;
   bonusViews: number;
-  premiumUntil: Date | null;
 }
 
 export interface LoginCredentials {

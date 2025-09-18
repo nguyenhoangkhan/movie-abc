@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -21,7 +21,7 @@ interface Movie {
   isAdult: boolean;
 }
 
-export default function MoviesPage() {
+function MoviesContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -252,5 +252,13 @@ export default function MoviesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function MoviesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MoviesContent />
+    </Suspense>
   );
 }
