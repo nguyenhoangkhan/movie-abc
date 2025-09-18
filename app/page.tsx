@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Play, Star, TrendingUp, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
@@ -206,46 +207,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-background border-t border-border py-12">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <Play className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold">movieABC</span>
-          </div>
-          <p className="text-muted-foreground mb-4">
-            The best movie streaming experience, anywhere, anytime.
-          </p>
-          <div className="flex justify-center space-x-6 text-sm text-muted-foreground">
-            <Link
-              href="/about"
-              className="hover:text-primary transition-colors"
-            >
-              About
-            </Link>
-            <Link
-              href="/privacy"
-              className="hover:text-primary transition-colors"
-            >
-              Privacy
-            </Link>
-            <Link
-              href="/terms"
-              className="hover:text-primary transition-colors"
-            >
-              Terms
-            </Link>
-            <Link
-              href="/contact"
-              className="hover:text-primary transition-colors"
-            >
-              Contact
-            </Link>
-          </div>
-          <div className="mt-8 pt-8 border-t border-border text-sm text-muted-foreground">
-            © 2024 movieABC. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

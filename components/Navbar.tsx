@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import { User, LogOut, Settings, Menu, X, Film, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import BuyMeCoffee from "@/components/BuyMeCoffee";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -56,6 +57,9 @@ export default function Navbar() {
                 Adult
               </Link>
             )}
+
+            {/* Buy Me a Coffee */}
+            <BuyMeCoffee variant="small" />
 
             {/* User Menu */}
             {status === "loading" ? (
@@ -160,6 +164,11 @@ export default function Navbar() {
                   Adult
                 </Link>
               )}
+
+              {/* Buy Me a Coffee for Mobile */}
+              <div className="px-3 py-2">
+                <BuyMeCoffee variant="small" />
+              </div>
 
               {session ? (
                 <>
