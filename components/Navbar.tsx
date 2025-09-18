@@ -43,12 +43,6 @@ export default function Navbar() {
             >
               Movies
             </Link>
-            <Link
-              href="/buttons"
-              className="text-foreground hover:text-primary transition-colors"
-            >
-              Buttons
-            </Link>
             {session && (
               <Link
                 href="/movies?adult=true"
@@ -147,13 +141,6 @@ export default function Navbar() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Movies
-              </Link>
-              <Link
-                href="/buttons"
-                className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Buttons
               </Link>
               {session && (
                 <Link
