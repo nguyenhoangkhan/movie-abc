@@ -245,9 +245,7 @@ export default function MoviesPage() {
                 You need to be logged in to access adult content
               </p>
               <Button asChild>
-                <Link href="/login">
-                  Sign In
-                </Link>
+                <Link href="/login">Sign In</Link>
               </Button>
             </div>
           </div>

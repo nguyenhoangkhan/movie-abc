@@ -211,7 +211,11 @@ export default function VideoPlayer({
             </div>
 
             <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="icon" className="text-white hover:text-primary transition-colors h-8 w-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:text-primary transition-colors h-8 w-8"
+              >
                 <Settings className="h-5 w-5" />
               </Button>
               <Button
