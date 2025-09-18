@@ -49,7 +49,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
 
         {/* Overlay */}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <Button asChild className="bg-red-600 hover:bg-red-700">
+          <Button asChild>
             <Link href={movieUrl} className="flex items-center space-x-2">
               <Play className="h-4 w-4" />
               <span>Xem Ngay</span>
