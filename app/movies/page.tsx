@@ -127,17 +127,17 @@ export default function MoviesPage() {
                   variant={viewMode === "grid" ? "default" : "ghost"}
                   size="icon"
                   onClick={() => setViewMode("grid")}
-                  className="rounded-none"
+                  className="rounded-r-none"
                 >
-                  <Grid className="h-4 w-4" />
+                  <Grid className="size-4" />
                 </Button>
                 <Button
                   variant={viewMode === "list" ? "default" : "ghost"}
                   size="icon"
                   onClick={() => setViewMode("list")}
-                  className="rounded-none"
+                  className="rounded-l-none"
                 >
-                  <List className="h-4 w-4" />
+                  <List className="size-4" />
                 </Button>
               </div>
             </div>
