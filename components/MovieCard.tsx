@@ -1,0 +1,99 @@
+import Image from "next/image";
+import Link from "next/link";
+import { Star, Calendar, Play } from "lucide-react";
+import { formatDate } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+interface Movie {
+  id: string;
+  title: string;
+  description?: string | null;
+  poster?: string | null;
+  backdrop?: string | null;
+  releaseDate?: Date | null;
+  rating?: number | null;
+  genre: string[];
+  isAdult: boolean;
+}
+
+interface MovieCardProps {
+  movie: Movie;
+}
+
+export default function MovieCard({ movie }: MovieCardProps) {
+  return (
+    <div className="group relative bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+      {/* Poster Image */}
+      <div className="relative aspect-[2/3] overflow-hidden">
+        <Image
+          src={movie.poster || "/placeholder-movie.jpg"}
+          alt={movie.title}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-110"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
+
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <Button asChild className="bg-red-600 hover:bg-red-700">
+            <Link
+              href={`/movies/${movie.id}`}
+              className="flex items-center space-x-2"
+            >
+              <Play className="h-4 w-4" />
+              <span>Watch Now</span>
+            </Link>
+          </Button>
+        </div>
+
+        {/* Adult Badge */}
+        {movie.isAdult && (
+          <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
+            18+
+          </div>
+        )}
+
+        {/* Rating */}
+        {movie.rating && (
+          <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center space-x-1">
+            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+            <span>{movie.rating.toFixed(1)}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        <h3 className="font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+          {movie.title}
+        </h3>
+
+        {movie.description && (
+          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+            {movie.description}
+          </p>
+        )}
+
+        {/* Meta Information */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          {movie.releaseDate && (
+            <div className="flex items-center space-x-1">
+              <Calendar className="h-3 w-3" />
+              <span>{formatDate(new Date(movie.releaseDate))}</span>
+            </div>
+          )}
+
+          {movie.genre.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {movie.genre.slice(0, 2).map((g) => (
+                <span key={g} className="bg-muted px-2 py-1 rounded text-xs">
+                  {g}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String         @id @default(cuid())
+  email           String         @unique
+  name            String?
+  password        String?
+  plan            String         @default("GUEST") // GUEST, FREE, PREMIUM
+  dailyViews      Int            @default(0)
+  bonusViews      Int            @default(0)
+  lastViewReset   DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  // Relations
+  watchHistory    WatchHistory[]
+  invitesSent     Invite[]       @relation("InviterUser")
+  invitesReceived Invite[]       @relation("InviteeUser")
+  payments        Payment[]
+
+  @@map("users")
+}
+
+model Movie {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  thumbnail   String?
+  duration    Int?      // Duration in minutes
+  releaseYear Int?
+  rating      Float?
+  genre       String    // Comma-separated genres
+  isAdult     Boolean   @default(false)
+  videoUrls   String    // JSON string with different resolutions
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  watchHistory WatchHistory[]
+
+  @@map("movies")
+}
+
+model WatchHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  movieId   String
+  watchedAt DateTime @default(now())
+  
+  // Relations
+  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie  Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, movieId])
+  @@map("watch_history")
+}
+
+model Invite {
+  id          String   @id @default(cuid())
+  inviterId   String
+  inviteeId   String?
+  email       String
+  status      String   @default("PENDING") // PENDING, ACCEPTED, EXPIRED
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  
+  // Relations
+  inviter User  @relation("InviterUser", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee User? @relation("InviteeUser", fields: [inviteeId], references: [id], onDelete: Cascade)
+
+  @@map("invites")
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // PREMIUM_UPGRADE, DONATION
+  amount    Float
+  status    String   @default("PENDING") // PENDING, COMPLETED, FAILED, CANCELLED
+  metadata  String?  // JSON string for additional data
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
