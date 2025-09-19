@@ -162,7 +162,7 @@ export default function MovieDetailPage() {
       {showVideoPlayer && (
         <div className="container mx-auto px-4 py-8">
           <MovieVideoPlayer
-            movieId={movie.id}
+            movieSlug={movie.slug || slug || ""}
             movieTitle={movie.title}
             episodeSlug={selectedEpisode}
             videoSources={movie.videoSources}

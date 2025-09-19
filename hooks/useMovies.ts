@@ -79,8 +79,8 @@ export const queryKeys = {
   },
   watch: {
     all: ["watch"] as const,
-    video: (movieId: string, resolution?: string, episode?: string) =>
-      [...queryKeys.watch.all, { movieId, resolution, episode }] as const,
+    video: (movieSlug: string, resolution?: string, episode?: string) =>
+      [...queryKeys.watch.all, { movieSlug, resolution, episode }] as const,
   },
 };
 
@@ -128,11 +128,11 @@ const fetchMovieDetail = async (slug: string): Promise<MovieDetail> => {
 };
 
 const fetchWatchData = async (
-  movieId: string,
+  movieSlug: string,
   resolution: string = "720p",
   episode?: string
 ): Promise<WatchData> => {
-  const response = await fetch(`/api/watch/${movieId}`, {
+  const response = await fetch(`/api/watch/${movieSlug}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -183,15 +183,15 @@ export const useMovieDetail = (slug: string) => {
 
 // Fetch watch/video data
 export const useWatchData = (
-  movieId: string,
+  movieSlug: string,
   resolution: string = "720p",
   episode?: string,
   enabled: boolean = true
 ) => {
   return useQuery({
-    queryKey: queryKeys.watch.video(movieId, resolution, episode),
-    queryFn: () => fetchWatchData(movieId, resolution, episode),
-    enabled: enabled && !!movieId, // Only run if enabled and movieId exists
+    queryKey: queryKeys.watch.video(movieSlug, resolution, episode),
+    queryFn: () => fetchWatchData(movieSlug, resolution, episode),
+    enabled: enabled && !!movieSlug, // Only run if enabled and movieSlug exists
     staleTime: 1 * 60 * 1000, // 1 minute (video URLs may expire quickly)
     gcTime: 5 * 60 * 1000, // 5 minutes
     retry: (failureCount, error: any) => {
@@ -208,19 +208,19 @@ export const useWatchMutation = () => {
 
   return useMutation({
     mutationFn: ({
-      movieId,
+      movieSlug,
       resolution,
       episode,
     }: {
-      movieId: string;
+      movieSlug: string;
       resolution?: string;
       episode?: string;
-    }) => fetchWatchData(movieId, resolution, episode),
+    }) => fetchWatchData(movieSlug, resolution, episode),
     onSuccess: (data, variables) => {
       // Cache the successful result
       queryClient.setQueryData(
         queryKeys.watch.video(
-          variables.movieId,
+          variables.movieSlug,
           variables.resolution,
           variables.episode
         ),

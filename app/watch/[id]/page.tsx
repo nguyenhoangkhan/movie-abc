@@ -70,7 +70,7 @@ export default function WatchPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/watch/${params.id}`, {
+      const response = await fetch(`/api/watch/${params.slug}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

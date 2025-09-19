@@ -27,7 +27,6 @@ export async function POST(
     const movie = kkphimService.convertToAppFormat(movieDetail.movie);
 
     let userId = session?.user?.id;
-    let userPlan = session?.user?.plan || "GUEST";
 
     // Optional: Record watch history if user is logged in
     if (userId) {
@@ -128,6 +127,7 @@ export async function POST(
           hasVideo: false,
           message: "Video not available for this movie",
           movie: {
+            tmdb: movie.tmdb,
             id: movie.id,
             title: movie.title,
             originalTitle: movie.originalTitle,

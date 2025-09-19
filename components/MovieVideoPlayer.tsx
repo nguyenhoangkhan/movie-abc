@@ -20,7 +20,7 @@ interface VideoSource {
 }
 
 interface MovieVideoPlayerProps {
-  movieId: string;
+  movieSlug: string;
   movieTitle: string;
   episodeSlug?: string;
   videoSources?: VideoSource[];
@@ -28,10 +28,9 @@ interface MovieVideoPlayerProps {
 }
 
 export default function MovieVideoPlayer({
-  movieId,
+  movieSlug,
   movieTitle,
   episodeSlug,
-  videoSources = [],
   className = "",
 }: MovieVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -52,7 +51,7 @@ export default function MovieVideoPlayer({
     isLoading,
     isError,
     error,
-  } = useWatchData(movieId, selectedQuality, episodeSlug);
+  } = useWatchData(movieSlug, selectedQuality, episodeSlug);
 
   const currentVideoUrl = watchData?.videoUrl;
   const hasVideo = watchData?.hasVideo;
