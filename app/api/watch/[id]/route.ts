@@ -4,6 +4,49 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { kkphimService } from "@/lib/kkphim";
 
+// Helper function to fetch video from TMDB
+async function fetchTMDBVideo(
+  tmdbId: string,
+  type: string = "movie",
+  season?: number
+) {
+  try {
+    // You can integrate with TMDB API or other video sources here
+    // For now, we'll create a placeholder that generates video URLs based on TMDB data
+    const baseUrl =
+      process.env.VIDEO_CDN_URL || "https://example-video-cdn.com";
+
+    if (type === "movie") {
+      return {
+        videoUrl: `${baseUrl}/movie/${tmdbId}/stream.m3u8`,
+        videoType: "hls",
+        availableResolutions: {
+          "1080p": `${baseUrl}/movie/${tmdbId}/1080p.m3u8`,
+          "720p": `${baseUrl}/movie/${tmdbId}/720p.m3u8`,
+          "480p": `${baseUrl}/movie/${tmdbId}/480p.m3u8`,
+          "360p": `${baseUrl}/movie/${tmdbId}/360p.m3u8`,
+        },
+      };
+    } else if (type === "tv" && season) {
+      return {
+        videoUrl: `${baseUrl}/tv/${tmdbId}/season/${season}/stream.m3u8`,
+        videoType: "hls",
+        availableResolutions: {
+          "1080p": `${baseUrl}/tv/${tmdbId}/season/${season}/1080p.m3u8`,
+          "720p": `${baseUrl}/tv/${tmdbId}/season/${season}/720p.m3u8`,
+          "480p": `${baseUrl}/tv/${tmdbId}/season/${season}/480p.m3u8`,
+          "360p": `${baseUrl}/tv/${tmdbId}/season/${season}/360p.m3u8`,
+        },
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Failed to fetch TMDB video:", error);
+    return null;
+  }
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -43,13 +86,49 @@ export async function POST(
       }
     }
 
-    // Get video URL from episodes
+    // Check if movie has TMDB data
+    const tmdbInfo = movie.tmdb;
     let videoUrl = "";
     let availableResolutions: Record<string, string> = {};
+    let videoType = "";
     let episodes: any[] = [];
     let currentEpisode: any = null;
 
-    if (movieDetail.movie.episodes && movieDetail.movie.episodes.length > 0) {
+    if (tmdbInfo && tmdbInfo.id) {
+      console.log("Using TMDB data for video:", tmdbInfo);
+
+      // Try to get video from TMDB
+      const tmdbVideo = await fetchTMDBVideo(
+        tmdbInfo.id,
+        tmdbInfo.type,
+        tmdbInfo.season
+      );
+
+      if (tmdbVideo) {
+        videoUrl =
+          tmdbVideo.availableResolutions[
+            resolution as keyof typeof tmdbVideo.availableResolutions
+          ] || tmdbVideo.videoUrl;
+        availableResolutions = tmdbVideo.availableResolutions;
+        videoType = tmdbVideo.videoType;
+
+        console.log("TMDB video found:", {
+          tmdbId: tmdbInfo.id,
+          type: tmdbInfo.type,
+          resolution,
+          hasVideo: !!videoUrl,
+        });
+      }
+    }
+
+    // Fallback to PhimAPI episodes if no TMDB video
+    if (
+      !videoUrl &&
+      movieDetail.movie.episodes &&
+      movieDetail.movie.episodes.length > 0
+    ) {
+      console.log("Falling back to PhimAPI episodes");
+
       // Get the first server's episodes
       const firstServer = movieDetail.movie.episodes[0];
       if (firstServer.server_data && firstServer.server_data.length > 0) {
@@ -81,30 +160,25 @@ export async function POST(
         };
 
         // Priority: m3u8 > embed link
-        // M3U8 links are preferred for better quality and compatibility
         if (episodeToPlay.link_m3u8) {
           videoUrl = episodeToPlay.link_m3u8;
-          console.log("Using M3U8 link:", videoUrl);
+          videoType = "hls";
+          console.log("Using PhimAPI M3U8 link:", videoUrl);
         } else if (episodeToPlay.link_embed) {
           videoUrl = episodeToPlay.link_embed;
-          console.log("Using embed link:", videoUrl);
+          videoType = "embed";
+          console.log("Using PhimAPI embed link:", videoUrl);
         }
 
-        // For M3U8 streams, we'll provide multiple quality options
-        // In reality, you might want to parse the M3U8 file to get actual quality variants
-        availableResolutions = {
-          "1080p": videoUrl,
-          "720p": videoUrl,
-          "480p": videoUrl,
-          "360p": videoUrl,
-        };
-
-        console.log("Episode data:", {
-          total: episodes.length,
-          current: currentEpisode,
-          hasM3U8: !!episodeToPlay.link_m3u8,
-          hasEmbed: !!episodeToPlay.link_embed,
-        });
+        // For M3U8 streams, provide multiple quality options
+        if (videoType === "hls") {
+          availableResolutions = {
+            "1080p": videoUrl,
+            "720p": videoUrl,
+            "480p": videoUrl,
+            "360p": videoUrl,
+          };
+        }
       }
     }
 

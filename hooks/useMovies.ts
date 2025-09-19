@@ -46,6 +46,13 @@ interface MovieDetail extends Movie {
     vote_average: number;
     vote_count: number;
   };
+  tmdb?: {
+    type: string;
+    id: string;
+    season?: number;
+    vote_average: number;
+    vote_count: number;
+  };
   imdbInfo?: {
     id: string;
   };

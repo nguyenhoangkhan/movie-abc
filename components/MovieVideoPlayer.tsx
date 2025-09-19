@@ -58,15 +58,28 @@ export default function MovieVideoPlayer({
 
   // Handle video not available case
   if (!isLoading && (!hasVideo || !currentVideoUrl)) {
+    const tmdbInfo = watchData?.movie?.tmdb;
+
     return (
       <div className={`bg-black rounded-lg overflow-hidden ${className}`}>
         <div className="flex items-center justify-center h-96">
           <div className="text-center text-white">
             <AlertCircle className="h-16 w-16 mx-auto mb-4 text-yellow-500" />
             <h3 className="text-xl font-semibold mb-2">Video không khả dụng</h3>
-            <p className="text-gray-300">
+            <p className="text-gray-300 mb-4">
               {watchData?.message || "Phim này hiện tại không có video để phát"}
             </p>
+            {tmdbInfo && (
+              <div className="text-sm text-gray-400 space-y-1">
+                <p>TMDB ID: {tmdbInfo.id}</p>
+                <p>Type: {tmdbInfo.type}</p>
+                <p>
+                  Rating: {tmdbInfo.vote_average}/10 ({tmdbInfo.vote_count}{" "}
+                  votes)
+                </p>
+                {tmdbInfo.season && <p>Season: {tmdbInfo.season}</p>}
+              </div>
+            )}
           </div>
         </div>
       </div>
