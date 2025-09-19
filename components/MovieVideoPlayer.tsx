@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import {
   Play,
   Pause,
@@ -56,7 +56,6 @@ export default function MovieVideoPlayer({
 
   const currentVideoUrl = watchData?.videoUrl;
   const hasVideo = watchData?.hasVideo;
-  const availableResolutions = watchData?.availableResolutions || [];
 
   // Handle video not available case
   if (!isLoading && (!hasVideo || !currentVideoUrl)) {
@@ -158,7 +157,9 @@ export default function MovieVideoPlayer({
         <div className="text-center text-white">
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
           <h3 className="text-xl font-semibold mb-2">Không thể tải video</h3>
-          <p className="text-gray-300 mb-4">{error?.message || "Lỗi không xác định"}</p>
+          <p className="text-gray-300 mb-4">
+            {error?.message || "Lỗi không xác định"}
+          </p>
           <p className="text-sm text-gray-400">Vui lòng thử lại sau</p>
         </div>
       </div>
