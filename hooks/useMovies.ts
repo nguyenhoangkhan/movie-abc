@@ -52,10 +52,12 @@ interface MovieDetail extends Movie {
 }
 
 interface WatchData {
-  videoUrl: string;
-  resolution: string;
+  videoUrl: string | null;
+  resolution: string | null;
   availableResolutions: string[];
-  videoType: string;
+  videoType: string | null;
+  hasVideo: boolean;
+  message?: string;
   movie: MovieDetail;
   episodes?: any[];
   currentEpisode?: any;

@@ -9,8 +9,10 @@ import {
   Maximize,
   Settings,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useWatchData } from "@/hooks/useMovies";
 
 interface VideoSource {
   quality: string;
@@ -39,49 +41,39 @@ export default function MovieVideoPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(true);
-  const [isLoading, setIsLoading] = useState(true); // Start as loading
-  const [error, setError] = useState<string | null>(null);
   const [selectedQuality, setSelectedQuality] = useState("720p");
   const [showQualityMenu, setShowQualityMenu] = useState(false);
-  const [currentVideoUrl, setCurrentVideoUrl] = useState("");
 
   const qualities = ["1080p", "720p", "480p", "360p"];
 
-  // Fetch video URL from API
-  const fetchVideoUrl = async (quality: string = "720p", episode?: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  // Use React Query hook instead of manual fetch
+  const {
+    data: watchData,
+    isLoading,
+    isError,
+    error,
+  } = useWatchData(movieId, selectedQuality, episodeSlug);
 
-      const response = await fetch(`/api/watch/${movieId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          resolution: quality,
-          episode: episode,
-        }),
-      });
+  const currentVideoUrl = watchData?.videoUrl;
+  const hasVideo = watchData?.hasVideo;
+  const availableResolutions = watchData?.availableResolutions || [];
 
-      const data = await response.json();
-
-      if (data.success) {
-        setCurrentVideoUrl(data.data.videoUrl);
-        setSelectedQuality(quality);
-      } else {
-        setError(data.error || "Failed to load video");
-      }
-    } catch (err) {
-      setError("Network error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchVideoUrl(selectedQuality, episodeSlug);
-  }, [movieId, episodeSlug]);
+  // Handle video not available case
+  if (!isLoading && (!hasVideo || !currentVideoUrl)) {
+    return (
+      <div className={`bg-black rounded-lg overflow-hidden ${className}`}>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center text-white">
+            <AlertCircle className="h-16 w-16 mx-auto mb-4 text-yellow-500" />
+            <h3 className="text-xl font-semibold mb-2">Video không khả dụng</h3>
+            <p className="text-gray-300">
+              {watchData?.message || "Phim này hiện tại không có video để phát"}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -141,7 +133,7 @@ export default function MovieVideoPlayer({
   };
 
   const handleQualityChange = (quality: string) => {
-    fetchVideoUrl(quality, episodeSlug);
+    setSelectedQuality(quality);
     setShowQualityMenu(false);
   };
 
@@ -158,7 +150,7 @@ export default function MovieVideoPlayer({
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  if (error) {
+  if (isError) {
     return (
       <div
         className={`relative w-full aspect-video bg-gray-900 flex items-center justify-center ${className}`}
@@ -166,14 +158,8 @@ export default function MovieVideoPlayer({
         <div className="text-center text-white">
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
           <h3 className="text-xl font-semibold mb-2">Không thể tải video</h3>
-          <p className="text-gray-300 mb-4">{error}</p>
-          <Button
-            onClick={() => fetchVideoUrl(selectedQuality, episodeSlug)}
-            variant="outline"
-            className="text-white border-white hover:bg-white hover:text-black"
-          >
-            Thử lại
-          </Button>
+          <p className="text-gray-300 mb-4">{error?.message || "Lỗi không xác định"}</p>
+          <p className="text-sm text-gray-400">Vui lòng thử lại sau</p>
         </div>
       </div>
     );
@@ -195,10 +181,8 @@ export default function MovieVideoPlayer({
           onLoadedMetadata={handleLoadedMetadata}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
-          onWaiting={() => setIsLoading(true)}
-          onCanPlay={() => setIsLoading(false)}
         />
-      ) : !error ? (
+      ) : !isError ? (
         <div className="w-full h-full flex items-center justify-center bg-gray-900">
           <div className="text-center text-white">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>

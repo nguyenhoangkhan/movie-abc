@@ -22,6 +22,7 @@ export async function POST(
         { status: 404 }
       );
     }
+    console.log("movieDetail ", movieDetail);
 
     const movie = kkphimService.convertToAppFormat(movieDetail.movie);
 
@@ -108,12 +109,51 @@ export async function POST(
       }
     }
 
+    // If no video URL is found, we'll still return movie info
+    // This allows the frontend to handle the no-video case gracefully
     if (!videoUrl) {
-      console.log("No video URL found for:", movieSlug);
-      return NextResponse.json(
-        { success: false, error: "Video URL not available" },
-        { status: 404 }
+      console.log(
+        "No video URL found for:",
+        movieSlug,
+        "but returning movie info"
       );
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          videoUrl: null,
+          resolution: null,
+          availableResolutions: [],
+          videoType: null,
+          hasVideo: false,
+          message: "Video not available for this movie",
+          movie: {
+            id: movie.id,
+            title: movie.title,
+            originalTitle: movie.originalTitle,
+            description: movie.description,
+            thumbnail: movie.thumbnail,
+            poster: movie.poster,
+            genre: movie.genre.join(", "),
+            rating: movie.rating,
+            releaseYear: movie.year,
+            duration: movie.duration,
+            status: movie.status,
+            type: movie.type,
+            quality: movie.quality,
+            view: movie.view,
+            episodeCurrent: movie.episodeCurrent,
+            episodeTotal: movie.episodeTotal,
+            slug: movie.slug,
+          },
+          episodes: episodes.length > 1 ? episodes : [],
+          currentEpisode,
+          serverInfo: {
+            name: movieDetail.movie.episodes?.[0]?.server_name || "Default",
+            totalServers: movieDetail.movie.episodes?.length || 1,
+          },
+        },
+      });
     }
 
     console.log("Returning video data:", {
@@ -130,6 +170,7 @@ export async function POST(
         resolution,
         availableResolutions: Object.keys(availableResolutions),
         videoType: videoUrl.includes(".m3u8") ? "hls" : "mp4",
+        hasVideo: true,
         movie: {
           id: movie.id,
           title: movie.title,
