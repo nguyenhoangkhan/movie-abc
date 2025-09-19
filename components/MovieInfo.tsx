@@ -54,7 +54,7 @@ export default function MovieInfo({ movie, onPlayClick }: MovieInfoProps) {
               {/* IMDb Rating Badge */}
               {movie.rating && (
                 <div className="absolute -top-3 -left-3 w-16 h-16 bg-yellow-500 rounded-full flex flex-col items-center justify-center text-black font-bold text-lg shadow-lg z-10">
-                  <span className="text-sm">{movie.rating}</span>
+                  <span className="text-sm">{movie.rating.toFixed(1)}</span>
                   <span className="text-xs font-medium -mt-1">IMDb</span>
                 </div>
               )}
@@ -233,7 +233,7 @@ export default function MovieInfo({ movie, onPlayClick }: MovieInfoProps) {
               {movie.rating ? (
                 <div className="flex items-center gap-1">
                   <Star className="h-4 w-4" />
-                  <span>{movie.rating}/10</span>
+                  <span>{movie.rating.toFixed(1)}/10</span>
                 </div>
               ) : null}
               {movie.view ? (

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { shouldResetDailyViews, canAccessResolution } from "@/lib/utils";
 import { kkphimService } from "@/lib/kkphim";
 
 export async function POST(
@@ -14,7 +13,7 @@ export async function POST(
     const { id: movieSlug } = await params;
     const { resolution = "720p", episode } = await request.json();
 
-    // Get movie from KKPhim API using slug
+    // Get movie from PhimAPI using slug
     const movieDetail = await kkphimService.getMovieDetail(movieSlug);
 
     if (!movieDetail.status) {
@@ -35,7 +34,7 @@ export async function POST(
         await prisma.watchHistory.create({
           data: {
             userId,
-            movieId: movie.id, // Using KKPhim movie ID
+            movieId: movie.id, // Using PhimAPI movie ID
           },
         });
       } catch (error) {
@@ -68,7 +67,7 @@ export async function POST(
 
         if (episode) {
           const foundEpisode = firstServer.server_data.find(
-            (ep: any) => ep.slug === episode
+            (ep: any) => ep.slug === episode || ep.name === episode
           );
           if (foundEpisode) {
             episodeToPlay = foundEpisode;
@@ -78,37 +77,63 @@ export async function POST(
         currentEpisode = {
           name: episodeToPlay.name,
           slug: episodeToPlay.slug,
+          filename: episodeToPlay.filename,
         };
 
-        // Use m3u8 link if available, otherwise use embed link
-        videoUrl = episodeToPlay.link_m3u8 || episodeToPlay.link_embed;
+        // Priority: m3u8 > embed link
+        // M3U8 links are preferred for better quality and compatibility
+        if (episodeToPlay.link_m3u8) {
+          videoUrl = episodeToPlay.link_m3u8;
+          console.log("Using M3U8 link:", videoUrl);
+        } else if (episodeToPlay.link_embed) {
+          videoUrl = episodeToPlay.link_embed;
+          console.log("Using embed link:", videoUrl);
+        }
 
-        // For simplicity, we'll use the same URL for all resolutions
-        // In a real app, you might want to extract different quality streams from the m3u8
+        // For M3U8 streams, we'll provide multiple quality options
+        // In reality, you might want to parse the M3U8 file to get actual quality variants
         availableResolutions = {
           "1080p": videoUrl,
           "720p": videoUrl,
           "480p": videoUrl,
           "360p": videoUrl,
         };
+
+        console.log("Episode data:", {
+          total: episodes.length,
+          current: currentEpisode,
+          hasM3U8: !!episodeToPlay.link_m3u8,
+          hasEmbed: !!episodeToPlay.link_embed,
+        });
       }
     }
 
     if (!videoUrl) {
+      console.log("No video URL found for:", movieSlug);
       return NextResponse.json(
         { success: false, error: "Video URL not available" },
         { status: 404 }
       );
     }
 
+    console.log("Returning video data:", {
+      resolution,
+      videoUrl: videoUrl.substring(0, 100) + "...",
+      episodeCount: episodes.length,
+      currentEpisode: currentEpisode?.name,
+    });
+
     return NextResponse.json({
       success: true,
       data: {
         videoUrl: availableResolutions[resolution] || videoUrl,
         resolution,
+        availableResolutions: Object.keys(availableResolutions),
+        videoType: videoUrl.includes(".m3u8") ? "hls" : "mp4",
         movie: {
           id: movie.id,
           title: movie.title,
+          originalTitle: movie.originalTitle,
           description: movie.description,
           thumbnail: movie.thumbnail,
           poster: movie.poster,
@@ -122,16 +147,35 @@ export async function POST(
           view: movie.view,
           episodeCurrent: movie.episodeCurrent,
           episodeTotal: movie.episodeTotal,
+          slug: movie.slug,
         },
         episodes: episodes.length > 1 ? episodes : [], // Only return episodes if there are multiple
         currentEpisode,
+        serverInfo: {
+          name: movieDetail.movie.episodes?.[0]?.server_name || "Default",
+          totalServers: movieDetail.movie.episodes?.length || 1,
+        },
       },
     });
   } catch (error) {
-    console.error("Watch error:", error);
+    console.error("Watch API error:", error);
+
+    // More detailed error response
+    const errorMessage =
+      error instanceof Error ? error.message : "Internal server error";
+    const isNetworkError =
+      errorMessage.includes("fetch") || errorMessage.includes("network");
+
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
+      {
+        success: false,
+        error: isNetworkError
+          ? "Failed to connect to video service"
+          : "Internal server error",
+        details:
+          process.env.NODE_ENV === "development" ? errorMessage : undefined,
+      },
+      { status: isNetworkError ? 503 : 500 }
     );
   }
 }

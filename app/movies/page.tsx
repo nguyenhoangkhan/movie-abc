@@ -1,68 +1,35 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useSession } from "next-auth/react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { Search, Filter, Grid, List } from "lucide-react";
+import { Search, Grid, List, RefreshCw, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import MovieCard from "@/components/MovieCard";
 import { Button } from "@/components/ui/button";
-
-interface Movie {
-  id: string;
-  title: string;
-  description?: string | null;
-  poster?: string | null;
-  backdrop?: string | null;
-  releaseDate?: Date | null;
-  rating?: number | null;
-  genre: string[];
-  isAdult: boolean;
-}
+import { useMovies, useInvalidateMovies } from "@/hooks/useMovies";
 
 function MoviesContent() {
-  const { data: session } = useSession();
   const searchParams = useSearchParams();
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
   const isAdultFilter = searchParams.get("adult") === "true";
+  const invalidateMovies = useInvalidateMovies();
 
-  useEffect(() => {
-    fetchMovies();
-  }, [currentPage, selectedGenre, searchTerm, isAdultFilter]);
+  // Use React Query instead of useState/useEffect
+  const {
+    data: movieData,
+    isLoading,
+    isError,
+    error,
+    isFetching,
+    isPlaceholderData,
+  } = useMovies(currentPage, selectedGenre, searchTerm, isAdultFilter);
 
-  const fetchMovies = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: "12",
-      });
-
-      if (searchTerm) params.append("search", searchTerm);
-      if (selectedGenre) params.append("genre", selectedGenre);
-      if (isAdultFilter) params.append("adult", "true");
-
-      const response = await fetch(`/api/movies?${params}`);
-      const data = await response.json();
-
-      if (data.success) {
-        setMovies(data.data.movies);
-        setTotalPages(data.data.pagination.totalPages);
-      }
-    } catch (error) {
-      console.error("Error fetching movies:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const movies = movieData?.movies || [];
+  const totalPages = movieData?.totalPages || 1;
 
   const genres = [
     "Action",
@@ -74,43 +41,93 @@ function MoviesContent() {
     "Thriller",
   ];
 
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    setCurrentPage(1);
+  };
+
+  const handleGenreChange = (genre: string) => {
+    setSelectedGenre(genre);
+    setCurrentPage(1);
+  };
+
+  const handleRefresh = () => {
+    invalidateMovies();
+  };
+
+  if (isError) {
+    return (
+      <div className="min-h-screen gradient-bg">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-12">
+            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-bold text-foreground mb-4">
+              Có lỗi xảy ra
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              {error?.message || "Không thể tải danh sách phim"}
+            </p>
+            <Button onClick={handleRefresh} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Thử lại
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen gradient-bg">
       <Navbar />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
-            {isAdultFilter ? "Adult Movies" : "Movies"}
-          </h1>
-          <p className="text-muted-foreground">
-            {isAdultFilter
-              ? "Exclusive adult content for registered users"
-              : "Discover your next favorite movie"}
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-foreground mb-4">
+              {isAdultFilter ? "Adult Movies" : "Movies"}
+              {isFetching && (
+                <Loader2 className="inline h-6 w-6 ml-3 animate-spin text-muted-foreground" />
+              )}
+            </h1>
+            <p className="text-muted-foreground">
+              {isAdultFilter
+                ? "Exclusive adult content for registered users"
+                : "Discover your next favorite movie"}
+            </p>
+          </div>
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            size="sm"
+            disabled={isFetching}
+          >
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isFetching ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </Button>
         </div>
 
-        {/* Filters */}
+        {/* Search */}
         <div className="card p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            {/* Search */}
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-5 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search movies..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearch(e.target.value)}
                 className="input pl-10 w-full"
               />
             </div>
 
-            {/* Genre Filter */}
             <div className="flex items-center space-x-4">
               <select
                 value={selectedGenre}
-                onChange={(e) => setSelectedGenre(e.target.value)}
+                onChange={(e) => handleGenreChange(e.target.value)}
                 className="input"
               >
                 <option value="">All Genres</option>
@@ -121,11 +138,10 @@ function MoviesContent() {
                 ))}
               </select>
 
-              {/* View Mode */}
-              <div className="flex items-center border border-border rounded-md">
+              <div className="flex border border-border rounded-lg">
                 <Button
                   variant={viewMode === "grid" ? "default" : "ghost"}
-                  size="icon"
+                  size="sm"
                   onClick={() => setViewMode("grid")}
                   className="rounded-r-none"
                 >
@@ -133,7 +149,7 @@ function MoviesContent() {
                 </Button>
                 <Button
                   variant={viewMode === "list" ? "default" : "ghost"}
-                  size="icon"
+                  size="sm"
                   onClick={() => setViewMode("list")}
                   className="rounded-l-none"
                 >
@@ -144,25 +160,26 @@ function MoviesContent() {
           </div>
         </div>
 
-        {/* Movies Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="card p-4 animate-pulse">
-                <div className="aspect-[2/3] bg-muted rounded mb-4"></div>
-                <div className="h-4 bg-muted rounded mb-2"></div>
-                <div className="h-3 bg-muted rounded w-2/3"></div>
-              </div>
-            ))}
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading movies...</p>
+            </div>
           </div>
-        ) : movies.length > 0 ? (
+        )}
+
+        {/* Movies Grid */}
+        {!isLoading && movies.length > 0 && (
           <>
             <div
-              className={`${
+              className={
                 viewMode === "grid"
-                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                  ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
                   : "space-y-4"
-              }`}
+              }
+              style={{ opacity: isPlaceholderData ? 0.5 : 1 }}
             >
               {movies.map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
@@ -171,83 +188,80 @@ function MoviesContent() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center mt-12">
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Previous
-                  </Button>
+              <div className="flex items-center justify-center mt-12 space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1 || isFetching}
+                >
+                  Previous
+                </Button>
 
+                <div className="flex items-center space-x-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const page = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
-                    if (page > totalPages) return null;
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
 
                     return (
                       <Button
-                        key={page}
-                        variant={currentPage === page ? "default" : "outline"}
+                        key={pageNum}
+                        variant={
+                          currentPage === pageNum ? "default" : "outline"
+                        }
                         size="sm"
-                        onClick={() => setCurrentPage(page)}
+                        onClick={() => setCurrentPage(pageNum)}
+                        disabled={isFetching}
                       >
-                        {page}
+                        {pageNum}
                       </Button>
                     );
                   })}
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                  </Button>
                 </div>
+
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }
+                  disabled={currentPage === totalPages || isFetching}
+                >
+                  Next
+                </Button>
               </div>
             )}
           </>
-        ) : (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🎬</div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">
-              No movies found
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              Try adjusting your search or filter criteria
-            </p>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedGenre("");
-                setCurrentPage(1);
-              }}
-            >
-              Clear Filters
-            </Button>
-          </div>
         )}
 
-        {/* Adult Content Notice */}
-        {isAdultFilter && !session && (
-          <div className="card p-6 mt-8 border-yellow-500">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                Authentication Required
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                You need to be logged in to access adult content
-              </p>
-              <Button asChild>
-                <Link href="/login">Sign In</Link>
+        {/* Empty State */}
+        {!isLoading && movies.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🎬</div>
+            <h3 className="text-xl font-semibold mb-2">No movies found</h3>
+            <p className="text-muted-foreground mb-4">
+              {searchTerm || selectedGenre
+                ? "Try adjusting your search criteria"
+                : "No movies are available at the moment"}
+            </p>
+            {(searchTerm || selectedGenre) && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedGenre("");
+                  setCurrentPage(1);
+                }}
+              >
+                Clear filters
               </Button>
-            </div>
+            )}
           </div>
         )}
       </div>
@@ -257,7 +271,19 @@ function MoviesContent() {
 
 export default function MoviesPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen gradient-bg">
+          <Navbar />
+          <div className="flex items-center justify-center min-h-[80vh]">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading movies...</p>
+            </div>
+          </div>
+        </div>
+      }
+    >
       <MoviesContent />
     </Suspense>
   );

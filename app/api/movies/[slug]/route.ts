@@ -63,8 +63,7 @@ export async function GET(
       if (movie.genre && movie.genre.length > 0) {
         const categoryResponse = await kkphimService.getMoviesByCategory(
           movie.genre[0].toLowerCase(),
-          1,
-          8
+          1
         );
 
         if (categoryResponse.status && categoryResponse.items) {
@@ -87,6 +86,30 @@ export async function GET(
         episodes: episodes.length > 1 ? episodes : undefined,
         recommendedMovies:
           recommendedMovies.length > 0 ? recommendedMovies : undefined,
+        // Enhanced movie info with TMDB data
+        tmdbInfo: movieDetail.movie.tmdb
+          ? {
+              type: movieDetail.movie.tmdb.type,
+              id: movieDetail.movie.tmdb.id,
+              season: movieDetail.movie.tmdb.season,
+              vote_average: movieDetail.movie.tmdb.vote_average,
+              vote_count: movieDetail.movie.tmdb.vote_count,
+            }
+          : undefined,
+        imdbInfo: movieDetail.movie.imdb?.id
+          ? {
+              id: movieDetail.movie.imdb.id,
+            }
+          : undefined,
+        // Original PhimAPI data for debugging
+        originalData:
+          process.env.NODE_ENV === "development"
+            ? {
+                status: movieDetail.status,
+                episodeCount: episodes.length,
+                serverInfo: movieDetail.movie.episodes?.[0]?.server_name,
+              }
+            : undefined,
       },
     });
   } catch (error) {

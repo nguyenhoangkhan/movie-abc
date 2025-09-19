@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MovieInfo from "@/components/MovieInfo";
 import MovieVideoPlayer from "@/components/MovieVideoPlayer";
 import EpisodeList from "@/components/EpisodeList";
+import { useMovieDetail } from "@/hooks/useMovies";
 
 interface MovieDetail {
   id: string;
@@ -50,42 +51,39 @@ interface MovieDetail {
     duration?: string;
     slug?: string;
   }>;
+  // Enhanced with TMDB data
+  tmdbInfo?: {
+    type: string;
+    id: string;
+    season?: number;
+    vote_average: number;
+    vote_count: number;
+  };
+  imdbInfo?: {
+    id: string;
+  };
+  originalData?: {
+    status: boolean;
+    episodeCount: number;
+    serverInfo: string;
+  };
 }
 
 export default function MovieDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [movie, setMovie] = useState<MovieDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [selectedEpisode, setSelectedEpisode] = useState<string>("");
 
-  useEffect(() => {
-    const fetchMovie = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
 
-        const response = await fetch(`/api/movies/${params.slug}`);
-        const data = await response.json();
-
-        if (data.success) {
-          setMovie(data.data);
-        } else {
-          setError(data.error || "Failed to fetch movie");
-        }
-      } catch (err) {
-        setError("Network error occurred");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (params.slug) {
-      fetchMovie();
-    }
-  }, [params.slug]);
+  // Use React Query instead of useState/useEffect
+  const {
+    data: movie,
+    isLoading: loading,
+    isError,
+    error,
+  } = useMovieDetail(slug || "");
 
   const handlePlayClick = () => {
     setShowVideoPlayer(true);
@@ -106,7 +104,7 @@ export default function MovieDetailPage() {
         <Navbar />
         <div className="flex items-center justify-center min-h-[80vh]">
           <div className="text-center text-white">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            <Loader2 className="animate-spin h-12 w-12 text-white mx-auto mb-4" />
             <p>Đang tải thông tin phim...</p>
           </div>
         </div>
@@ -115,7 +113,7 @@ export default function MovieDetailPage() {
     );
   }
 
-  if (error || !movie) {
+  if (isError || !movie) {
     return (
       <div className="min-h-screen bg-black">
         <Navbar />
@@ -126,7 +124,8 @@ export default function MovieDetailPage() {
               Không tìm thấy phim
             </h2>
             <p className="text-gray-300 mb-6 max-w-md">
-              {error || "Phim bạn tìm kiếm không tồn tại hoặc đã bị gỡ"}
+              {error?.message ||
+                "Phim bạn tìm kiếm không tồn tại hoặc đã bị gỡ"}
             </p>
             <Button
               onClick={() => router.back()}
@@ -146,10 +145,16 @@ export default function MovieDetailPage() {
   return (
     <div className="min-h-screen bg-black">
       <Navbar />
-      
+
       {/* Movie Information Section */}
-      <MovieInfo 
-        movie={movie} 
+      <MovieInfo
+        movie={{
+          ...movie,
+          description: movie.description || undefined,
+          poster: movie.poster || undefined,
+          thumbnail: movie.thumbnail || undefined,
+          rating: movie.rating || undefined,
+        }}
         onPlayClick={handlePlayClick}
       />
 
@@ -169,7 +174,15 @@ export default function MovieDetailPage() {
       {/* Episodes/Recommended Movies Section */}
       <EpisodeList
         episodes={movie.episodes}
-        recommendedMovies={movie.recommendedMovies}
+        recommendedMovies={movie.recommendedMovies?.map((rec) => ({
+          ...rec,
+          poster: rec.poster || undefined,
+          rating: rec.rating || undefined,
+          description: rec.description || undefined,
+          backdrop: rec.backdrop || undefined,
+          releaseDate: rec.releaseDate || undefined,
+          thumbnail: rec.thumbnail || undefined,
+        }))}
         currentEpisode={selectedEpisode}
         movieTitle={movie.title}
         onEpisodeSelect={handleEpisodeSelect}

@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Star, Calendar, Play, Clock, Eye } from "lucide-react";
-import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 interface Movie {
@@ -72,12 +71,12 @@ export default function MovieCard({ movie }: MovieCardProps) {
         )}
 
         {/* Rating */}
-        {movie.rating && movie.rating > 0 && (
+        {movie.rating && movie.rating > 0 ? (
           <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center space-x-1">
             <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
             <span>{movie.rating.toFixed(1)}</span>
           </div>
-        )}
+        ) : null}
 
         {/* View Count */}
         {movie.view && movie.view > 0 ? (
@@ -111,14 +110,14 @@ export default function MovieCard({ movie }: MovieCardProps) {
         )}
 
         {/* Episode Info */}
-        {movie.episodeCurrent && (
+        {movie.episodeCurrent ? (
           <div className="mb-2 text-xs text-blue-600 font-semibold">
             {movie.episodeCurrent}
             {movie.episodeTotal &&
               movie.episodeTotal !== movie.episodeCurrent &&
               ` / ${movie.episodeTotal}`}
           </div>
-        )}
+        ) : null}
 
         {/* Meta Information */}
         <div className="flex items-center justify-between text-xs text-muted-foreground">
