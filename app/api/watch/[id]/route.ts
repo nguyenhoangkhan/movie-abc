@@ -47,14 +47,16 @@ async function fetchTMDBVideo(
   }
 }
 
-export async function POST(
+export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
     const { id: movieSlug } = await params;
-    const { resolution = "720p", episode } = await request.json();
+    const { searchParams } = new URL(request.url);
+    const resolution = searchParams.get("resolution") || "720p";
+    const episode = searchParams.get("episode");
 
     // Get movie from PhimAPI using slug
     const movieDetail = await kkphimService.getMovieDetail(movieSlug);
@@ -65,7 +67,6 @@ export async function POST(
         { status: 404 }
       );
     }
-    console.log("movieDetail ", movieDetail);
 
     const movie = kkphimService.convertToAppFormat(movieDetail.movie);
 
@@ -94,44 +95,29 @@ export async function POST(
     let episodes: any[] = [];
     let currentEpisode: any = null;
 
-    if (tmdbInfo && tmdbInfo.id) {
-      console.log("Using TMDB data for video:", tmdbInfo);
+    // Debug: Check episodes data
+    console.log(
+      "Movie detail episodes:",
+      (movieDetail as any).episodes?.length || 0
+    );
 
-      // Try to get video from TMDB
-      const tmdbVideo = await fetchTMDBVideo(
-        tmdbInfo.id,
-        tmdbInfo.type,
-        tmdbInfo.season
-      );
-
-      if (tmdbVideo) {
-        videoUrl =
-          tmdbVideo.availableResolutions[
-            resolution as keyof typeof tmdbVideo.availableResolutions
-          ] || tmdbVideo.videoUrl;
-        availableResolutions = tmdbVideo.availableResolutions;
-        videoType = tmdbVideo.videoType;
-
-        console.log("TMDB video found:", {
-          tmdbId: tmdbInfo.id,
-          type: tmdbInfo.type,
-          resolution,
-          hasVideo: !!videoUrl,
-        });
-      }
-    }
-
-    // Fallback to PhimAPI episodes if no TMDB video
-    if (
-      !videoUrl &&
-      movieDetail.movie.episodes &&
-      movieDetail.movie.episodes.length > 0
-    ) {
-      console.log("Falling back to PhimAPI episodes");
+    // Try PhimAPI episodes first (real working videos) - API response has episodes at root level
+    const episodesData = (movieDetail as any).episodes;
+    if (episodesData && episodesData.length > 0) {
+      console.log("Checking PhimAPI episodes");
 
       // Get the first server's episodes
-      const firstServer = movieDetail.movie.episodes[0];
+      const firstServer = episodesData[0];
+      console.log("First server:", firstServer.server_name);
+      console.log("Episodes count:", firstServer.server_data?.length || 0);
+
       if (firstServer.server_data && firstServer.server_data.length > 0) {
+        console.log("First episode sample:", {
+          name: firstServer.server_data[0].name,
+          slug: firstServer.server_data[0].slug,
+          link_m3u8: firstServer.server_data[0].link_m3u8,
+          link_embed: firstServer.server_data[0].link_embed,
+        });
         // Build episodes list
         episodes = firstServer.server_data.map((ep: any) => ({
           name: ep.name,
@@ -182,6 +168,34 @@ export async function POST(
       }
     }
 
+    // Fallback to TMDB if no PhimAPI video found
+    if (!videoUrl && tmdbInfo && tmdbInfo.id) {
+      console.log("Falling back to TMDB data for video:", tmdbInfo);
+
+      // Try to get video from TMDB
+      const tmdbVideo = await fetchTMDBVideo(
+        tmdbInfo.id,
+        tmdbInfo.type,
+        tmdbInfo.season
+      );
+
+      if (tmdbVideo) {
+        videoUrl =
+          tmdbVideo.availableResolutions[
+            resolution as keyof typeof tmdbVideo.availableResolutions
+          ] || tmdbVideo.videoUrl;
+        availableResolutions = tmdbVideo.availableResolutions;
+        videoType = tmdbVideo.videoType;
+
+        console.log("TMDB video found:", {
+          tmdbId: tmdbInfo.id,
+          type: tmdbInfo.type,
+          resolution,
+          hasVideo: !!videoUrl,
+        });
+      }
+    }
+
     // If no video URL is found, we'll still return movie info
     // This allows the frontend to handle the no-video case gracefully
     if (!videoUrl) {
@@ -223,8 +237,8 @@ export async function POST(
           episodes: episodes.length > 1 ? episodes : [],
           currentEpisode,
           serverInfo: {
-            name: movieDetail.movie.episodes?.[0]?.server_name || "Default",
-            totalServers: movieDetail.movie.episodes?.length || 1,
+            name: episodesData?.[0]?.server_name || "Default",
+            totalServers: episodesData?.length || 1,
           },
         },
       });
@@ -246,6 +260,7 @@ export async function POST(
         videoType: videoUrl.includes(".m3u8") ? "hls" : "mp4",
         hasVideo: true,
         movie: {
+          tmdb: movie.tmdb,
           id: movie.id,
           title: movie.title,
           originalTitle: movie.originalTitle,
@@ -267,8 +282,8 @@ export async function POST(
         episodes: episodes.length > 1 ? episodes : [], // Only return episodes if there are multiple
         currentEpisode,
         serverInfo: {
-          name: movieDetail.movie.episodes?.[0]?.server_name || "Default",
-          totalServers: movieDetail.movie.episodes?.length || 1,
+          name: episodesData?.[0]?.server_name || "Default",
+          totalServers: episodesData?.length || 1,
         },
       },
     });

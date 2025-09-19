@@ -70,13 +70,16 @@ export default function WatchPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/watch/${params.slug}`, {
-        method: "POST",
+      const response = await fetch(`/api/watch/${params.id}`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ resolution, episode: episodeSlug }),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
 
