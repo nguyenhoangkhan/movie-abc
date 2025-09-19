@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { User, LogOut, Settings, Menu, X, Film, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,10 +10,30 @@ import BuyMeCoffee from "@/components/BuyMeCoffee";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleSignOut = () => {
     signOut({ callbackUrl: "/" });
+  };
+
+  const isActive = (path: string) => {
+    if (path === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(path);
+  };
+
+  const getLinkClasses = (path: string, isMobile = false) => {
+    const baseClasses = isMobile
+      ? "block px-3 py-2 transition-colors"
+      : "transition-colors";
+
+    const activeClasses = isActive(path)
+      ? "text-primary font-semibold"
+      : "text-foreground hover:text-primary";
+
+    return `${baseClasses} ${activeClasses}`;
   };
 
   return (
@@ -31,22 +52,16 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/"
-              className="text-foreground hover:text-primary transition-colors"
-            >
+            <Link href="/" className={getLinkClasses("/")}>
               Home
             </Link>
-            <Link
-              href="/movies"
-              className="text-foreground hover:text-primary transition-colors"
-            >
+            <Link href="/movies" className={getLinkClasses("/movies")}>
               Movies
             </Link>
             {session && (
               <Link
                 href="/movies?adult=true"
-                className="text-foreground hover:text-primary transition-colors"
+                className={getLinkClasses("/movies")}
               >
                 Adult
               </Link>
@@ -130,14 +145,14 @@ export default function Navbar() {
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-border">
               <Link
                 href="/"
-                className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
+                className={getLinkClasses("/", true)}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Home
               </Link>
               <Link
                 href="/movies"
-                className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
+                className={getLinkClasses("/movies", true)}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Movies
@@ -145,7 +160,7 @@ export default function Navbar() {
               {session && (
                 <Link
                   href="/movies?adult=true"
-                  className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
+                  className={getLinkClasses("/movies", true)}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Adult
@@ -161,7 +176,7 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/account"
-                    className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
+                    className={getLinkClasses("/account", true)}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Account
@@ -178,14 +193,14 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/login"
-                    className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
+                    className={getLinkClasses("/login", true)}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Login
                   </Link>
                   <Link
                     href="/register"
-                    className="block px-3 py-2 text-foreground hover:text-primary transition-colors"
+                    className={getLinkClasses("/register", true)}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Sign Up

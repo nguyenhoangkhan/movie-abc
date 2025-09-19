@@ -51,7 +51,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
           <Button asChild>
             <Link href={movieUrl} className="flex items-center space-x-2">
-              <Play className="h-4 w-4" />
+              <Play className="size-4" />
               <span>Play</span>
             </Link>
           </Button>
@@ -80,12 +80,12 @@ export default function MovieCard({ movie }: MovieCardProps) {
         )}
 
         {/* View Count */}
-        {movie.view && movie.view > 0 && (
+        {movie.view && movie.view > 0 ? (
           <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center space-x-1">
             <Eye className="h-3 w-3" />
             <span>{movie.view.toLocaleString()}</span>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Content */}
