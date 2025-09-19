@@ -4,7 +4,17 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { ArrowLeft, Settings, Loader2 } from "lucide-react";
+import Image from "next/image";
+import {
+  ArrowLeft,
+  Settings,
+  Loader2,
+  Calendar,
+  Clock,
+  Star,
+  Eye,
+  Play,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import VideoPlayer from "@/components/VideoPlayer";
 import Navbar from "@/components/Navbar";
@@ -17,9 +27,28 @@ interface WatchData {
     title: string;
     description?: string;
     thumbnail?: string;
+    poster?: string;
     genre: string;
     rating?: number;
     releaseYear?: number;
+    duration?: string;
+    status?: string;
+    type?: string;
+    quality?: string;
+    view?: number;
+    episodeCurrent?: string;
+    episodeTotal?: string;
+  };
+  episodes?: Array<{
+    name: string;
+    slug: string;
+    filename: string;
+    link_embed: string;
+    link_m3u8: string;
+  }>;
+  currentEpisode?: {
+    name: string;
+    slug: string;
   };
 }
 
@@ -31,8 +60,12 @@ export default function WatchPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedResolution, setSelectedResolution] = useState("720p");
+  const [selectedEpisode, setSelectedEpisode] = useState<string>("");
 
-  const startWatching = async (resolution: string = "720p") => {
+  const startWatching = async (
+    resolution: string = "720p",
+    episodeSlug?: string
+  ) => {
     try {
       setLoading(true);
       setError(null);
@@ -42,7 +75,7 @@ export default function WatchPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ resolution }),
+        body: JSON.stringify({ resolution, episode: episodeSlug }),
       });
 
       const data = await response.json();
@@ -72,8 +105,13 @@ export default function WatchPage() {
 
   const handleResolutionChange = (resolution: string) => {
     if (resolution !== selectedResolution) {
-      startWatching(resolution);
+      startWatching(resolution, selectedEpisode);
     }
+  };
+
+  const handleEpisodeChange = (episodeSlug: string) => {
+    setSelectedEpisode(episodeSlug);
+    startWatching(selectedResolution, episodeSlug);
   };
 
   if (loading) {
@@ -90,167 +128,294 @@ export default function WatchPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-black">
-        <Navbar />
-        <div className="flex items-center justify-center min-h-[80vh]">
-          <div className="text-center">
-            <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <h2 className="text-2xl font-bold text-white mb-4">
-              Không thể xem phim
-            </h2>
-            <p className="text-gray-300 mb-6 max-w-md">{error}</p>
-            <div className="space-x-4">
-              <Button
-                onClick={() => router.back()}
-                variant="outline"
-                className="text-white border-white hover:bg-white hover:text-black"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Quay lại
-              </Button>
-              {error.includes("Premium") && (
-                <Button asChild>
-                  <Link href="/account">Nâng cấp Premium</Link>
-                </Button>
-              )}
-              {error.includes("login") && (
-                <Button asChild>
-                  <Link href="/login">Đăng nhập</Link>
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!watchData) {
-    return (
-      <div className="min-h-screen bg-black">
-        <Navbar />
-        <div className="flex items-center justify-center min-h-[80vh]">
-          <div className="text-center text-white">
-            <p>Không tìm thấy dữ liệu phim</p>
-            <Button
-              onClick={() => router.back()}
-              variant="outline"
-              className="mt-4"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Quay lại
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-black">
       <Navbar />
       <div className="pt-16">
         {/* Video Player */}
         <div className="relative">
-          <VideoPlayer
-            src={watchData.videoUrl}
-            title={watchData.movie.title}
-            onTimeUpdate={(time) => {
-              // Could save watch progress here
-            }}
-            onEnded={() => {
-              // Could handle video end here
-            }}
-          />
-        </div>
-
-        {/* Movie Info & Controls */}
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Movie Info */}
-            <div className="flex-1">
-              <div className="flex items-start gap-4 mb-4">
-                <Button
-                  onClick={() => router.back()}
-                  variant="outline"
-                  size="sm"
-                  className="text-white border-white hover:bg-white hover:text-black"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Quay lại
-                </Button>
-              </div>
-
-              <h1 className="text-2xl lg:text-3xl font-bold text-white mb-4">
-                {watchData.movie.title}
-              </h1>
-
-              {watchData.movie.description && (
-                <p className="text-gray-300 mb-4 leading-relaxed">
-                  {watchData.movie.description}
-                </p>
-              )}
-
-              <div className="flex flex-wrap gap-4 text-sm text-gray-400">
-                {watchData.movie.releaseYear && (
-                  <span>Năm: {watchData.movie.releaseYear}</span>
-                )}
-                {watchData.movie.rating && (
-                  <span>Đánh giá: ⭐ {watchData.movie.rating}</span>
-                )}
-                <span>Thể loại: {watchData.movie.genre}</span>
-                <span>Chất lượng: {selectedResolution}</span>
-              </div>
-            </div>
-
-            {/* Resolution Controls */}
-            <div className="lg:w-64">
-              <div className="bg-gray-900 rounded-lg p-4">
-                <h3 className="text-white font-semibold mb-3 flex items-center">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Chất lượng video
-                </h3>
-                <div className="space-y-2">
-                  {["1080p", "720p", "480p", "360p"].map((resolution) => (
-                    <button
-                      key={resolution}
-                      onClick={() => handleResolutionChange(resolution)}
-                      className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
-                        resolution === selectedResolution
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-300 hover:bg-gray-800"
-                      }`}
-                      disabled={loading}
+          {watchData && !error ? (
+            <VideoPlayer
+              src={watchData.videoUrl}
+              title={watchData.movie.title}
+              onTimeUpdate={(time) => {
+                // Could save watch progress here
+              }}
+              onEnded={() => {
+                // Could handle video end here
+              }}
+            />
+          ) : (
+            /* Video Player Placeholder with Error Overlay */
+            <div className="relative w-full aspect-video bg-gray-900 flex items-center justify-center">
+              {/* Error Overlay */}
+              <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
+                <div className="text-center max-w-md px-4">
+                  <div className="text-red-500 text-6xl mb-4">⚠️</div>
+                  <h2 className="text-2xl font-bold text-white mb-4">
+                    {error || "Không tìm thấy dữ liệu phim"}
+                  </h2>
+                  {error && <p className="text-gray-300 mb-6">{error}</p>}
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button
+                      onClick={() => router.back()}
+                      variant="outline"
+                      className="text-white border-white hover:bg-white hover:text-black"
                     >
-                      {resolution}
-                      {resolution === selectedResolution && (
-                        <span className="float-right">✓</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                {/* User Plan Info */}
-                {session && (
-                  <div className="mt-4 pt-4 border-t border-gray-700">
-                    <p className="text-xs text-gray-400">
-                      Gói hiện tại: {session.user.plan || "GUEST"}
-                    </p>
-                    {session.user.plan !== "PREMIUM" && (
-                      <Link href="/account">
-                        <Button size="sm" className="w-full mt-2">
-                          Nâng cấp Premium
-                        </Button>
-                      </Link>
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Quay lại
+                    </Button>
+                    {error?.includes("Premium") && (
+                      <Button asChild>
+                        <Link href="/account">Nâng cấp Premium</Link>
+                      </Button>
+                    )}
+                    {error?.includes("login") && (
+                      <Button asChild>
+                        <Link href="/login">Đăng nhập</Link>
+                      </Button>
+                    )}
+                    {error && (
+                      <Button
+                        onClick={() => startWatching(selectedResolution)}
+                        variant="default"
+                      >
+                        Thử lại
+                      </Button>
                     )}
                   </div>
-                )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Episodes List - Always show if available */}
+        {watchData?.episodes && watchData.episodes.length > 1 && (
+          <div className="container mx-auto px-4 py-6">
+            <div className="mb-8">
+              <h3 className="text-white font-semibold mb-4 flex items-center">
+                <Play className="h-4 w-4 mr-2" />
+                Danh sách tập ({watchData.episodes.length} tập)
+              </h3>
+              <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+                {watchData.episodes.map((episode, index) => (
+                  <button
+                    key={episode.slug}
+                    onClick={() => handleEpisodeChange(episode.slug)}
+                    className={`p-2 rounded text-sm font-medium transition-colors ${
+                      selectedEpisode === episode.slug ||
+                      (!selectedEpisode && index === 0)
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    }`}
+                    disabled={loading}
+                  >
+                    {episode.name}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Movie Info & Controls */}
+        {watchData && (
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex flex-col xl:flex-row gap-6">
+              {/* Left Column - Movie Info & Episodes */}
+              <div className="flex-1">
+                {/* Back Button */}
+                <div className="flex items-start gap-4 mb-6">
+                  <Button
+                    onClick={() => router.back()}
+                    variant="outline"
+                    size="sm"
+                    className="text-white border-white hover:bg-white hover:text-black"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Quay lại
+                  </Button>
+                </div>
+
+                {/* Movie Header */}
+                <div className="flex flex-col md:flex-row gap-6 mb-8">
+                  {/* Movie Poster */}
+                  <div className="flex-shrink-0">
+                    <div className="relative w-64 h-96 rounded-lg overflow-hidden shadow-2xl">
+                      <Image
+                        src={
+                          watchData.movie.poster ||
+                          watchData.movie.thumbnail ||
+                          "/placeholder-movie.jpg"
+                        }
+                        alt={watchData.movie.title}
+                        fill
+                        className="object-cover"
+                        sizes="256px"
+                      />
+                      {/* Quality Badge */}
+                      {watchData.movie.quality && (
+                        <div className="absolute bottom-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded font-semibold">
+                          {watchData.movie.quality}
+                        </div>
+                      )}
+                      {/* Age Rating Badge */}
+                      <div className="absolute bottom-2 right-2 bg-gray-800 text-white text-xs px-2 py-1 rounded">
+                        16+
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Movie Details */}
+                  <div className="flex-1">
+                    <h1 className="text-2xl lg:text-3xl font-bold text-white mb-4">
+                      {watchData.movie.title}
+                    </h1>
+
+                    {/* Episode Info */}
+                    {watchData.currentEpisode && (
+                      <div className="mb-4">
+                        <span className="text-blue-400 font-semibold">
+                          Đang xem: {watchData.currentEpisode.name}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Movie Meta */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-sm">
+                      {watchData.movie.releaseYear && (
+                        <div className="flex items-center text-gray-300">
+                          <Calendar className="h-4 w-4 mr-2" />
+                          <span>{watchData.movie.releaseYear}</span>
+                        </div>
+                      )}
+                      {watchData.movie.duration && (
+                        <div className="flex items-center text-gray-300">
+                          <Clock className="h-4 w-4 mr-2" />
+                          <span>{watchData.movie.duration}</span>
+                        </div>
+                      )}
+                      {watchData.movie.rating && (
+                        <div className="flex items-center text-gray-300">
+                          <Star className="h-4 w-4 mr-2" />
+                          <span>{watchData.movie.rating}</span>
+                        </div>
+                      )}
+                      {watchData.movie.view && (
+                        <div className="flex items-center text-gray-300">
+                          <Eye className="h-4 w-4 mr-2" />
+                          <span>{watchData.movie.view.toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Additional Info */}
+                    <div className="space-y-2 text-sm text-gray-400 mb-6">
+                      <div>
+                        <span className="text-white">Thể loại: </span>
+                        {watchData.movie.genre}
+                      </div>
+                      {watchData.movie.status && (
+                        <div>
+                          <span className="text-white">Trạng thái: </span>
+                          {watchData.movie.status}
+                        </div>
+                      )}
+                      {watchData.movie.type && (
+                        <div>
+                          <span className="text-white">Loại: </span>
+                          {watchData.movie.type}
+                        </div>
+                      )}
+                      {watchData.movie.episodeCurrent && (
+                        <div>
+                          <span className="text-white">Tập hiện tại: </span>
+                          {watchData.movie.episodeCurrent}
+                          {watchData.movie.episodeTotal &&
+                            ` / ${watchData.movie.episodeTotal}`}
+                        </div>
+                      )}
+                    </div>
+
+                    {watchData.movie.description && (
+                      <div>
+                        <h3 className="text-white font-semibold mb-2">
+                          Nội dung
+                        </h3>
+                        <p className="text-gray-300 leading-relaxed">
+                          {watchData.movie.description.replace(/<[^>]*>/g, "")}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Controls */}
+              <div className="xl:w-80">
+                <div className="bg-gray-900 rounded-lg p-4 sticky top-20">
+                  <h3 className="text-white font-semibold mb-3 flex items-center">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Cài đặt video
+                  </h3>
+
+                  {/* Resolution Controls */}
+                  <div className="mb-6">
+                    <h4 className="text-gray-300 text-sm mb-2">Chất lượng</h4>
+                    <div className="space-y-2">
+                      {["1080p", "720p", "480p", "360p"].map((resolution) => (
+                        <button
+                          key={resolution}
+                          onClick={() => handleResolutionChange(resolution)}
+                          className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
+                            resolution === selectedResolution
+                              ? "bg-blue-600 text-white"
+                              : "text-gray-300 hover:bg-gray-800"
+                          }`}
+                          disabled={loading}
+                        >
+                          {resolution}
+                          {resolution === selectedResolution && (
+                            <span className="float-right">✓</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Current Episode Info */}
+                  {watchData.currentEpisode && (
+                    <div className="mb-4 p-3 bg-gray-800 rounded">
+                      <div className="text-xs text-gray-400 mb-1">
+                        Đang phát
+                      </div>
+                      <div className="text-white font-medium">
+                        {watchData.currentEpisode.name}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* User Plan Info */}
+                  {session && (
+                    <div className="pt-4 border-t border-gray-700">
+                      <p className="text-xs text-gray-400 mb-2">
+                        Gói hiện tại: {session.user.plan || "GUEST"}
+                      </p>
+                      {session.user.plan !== "PREMIUM" && (
+                        <Link href="/account">
+                          <Button size="sm" className="w-full">
+                            Nâng cấp Premium
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

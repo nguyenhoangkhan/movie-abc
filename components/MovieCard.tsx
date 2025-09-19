@@ -52,7 +52,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
           <Button asChild>
             <Link href={movieUrl} className="flex items-center space-x-2">
               <Play className="h-4 w-4" />
-              <span>Xem Ngay</span>
+              <span>Play</span>
             </Link>
           </Button>
         </div>
@@ -102,9 +102,12 @@ export default function MovieCard({ movie }: MovieCardProps) {
         </div>
 
         {movie.description && (
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-            {movie.description.replace(/<[^>]*>/g, "")} {/* Remove HTML tags */}
-          </p>
+          <p
+            className="text-sm text-muted-foreground mb-3 line-clamp-2"
+            dangerouslySetInnerHTML={{
+              __html: movie.description,
+            }}
+          />
         )}
 
         {/* Episode Info */}
@@ -120,22 +123,22 @@ export default function MovieCard({ movie }: MovieCardProps) {
         {/* Meta Information */}
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center space-x-2">
-            {movie.year && (
+            {movie.year ? (
               <div className="flex items-center space-x-1">
                 <Calendar className="h-3 w-3" />
                 <span>{movie.year}</span>
               </div>
-            )}
+            ) : null}
 
-            {movie.duration && (
+            {movie.duration ? (
               <div className="flex items-center space-x-1">
                 <Clock className="h-3 w-3" />
                 <span>{movie.duration}</span>
               </div>
-            )}
+            ) : null}
           </div>
 
-          {movie.genre && movie.genre.length > 0 && (
+          {movie.genre && movie.genre.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {movie.genre.slice(0, 2).map((g, index) => (
                 <span
@@ -146,7 +149,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
                 </span>
               ))}
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

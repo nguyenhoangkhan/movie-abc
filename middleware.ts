@@ -38,7 +38,9 @@ export default withAuth(
           pathname === "/login" ||
           pathname === "/register" ||
           pathname.startsWith("/movies") ||
+          pathname.startsWith("/watch") ||
           pathname.startsWith("/api/movies") ||
+          pathname.startsWith("/api/watch") ||
           pathname.startsWith("/api/auth") ||
           pathname.startsWith("/_next") ||
           pathname.startsWith("/favicon")

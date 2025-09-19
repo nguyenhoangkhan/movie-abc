@@ -87,11 +87,8 @@ export function canAccessResolution(
   userPlan: string,
   resolution: string
 ): boolean {
-  if (userPlan === "PREMIUM") return true;
-  if (userPlan === "FREE" || userPlan === "GUEST") {
-    return resolution !== "FHD";
-  }
-  return false;
+  // Allow all resolutions for all users (no restrictions)
+  return true;
 }
 
 export function getMaxResolution(userPlan: string): string {
