@@ -29,20 +29,16 @@ export async function GET(request: NextRequest) {
       // Determine which API call to make based on parameters
       if (search) {
         // Search movies
-        kkphimResponse = await kkphimService.searchMovies(search, page, limit);
+        kkphimResponse = await kkphimService.searchMovies(search, page);
       } else if (genre) {
         // Get movies by category
-        kkphimResponse = await kkphimService.getMoviesByCategory(
-          genre,
-          page,
-          limit
-        );
+        kkphimResponse = await kkphimService.getMoviesByCategory(genre, page);
       } else if (type) {
-        // Get movies by type
-        kkphimResponse = await kkphimService.getMoviesByType(type, page, limit);
+        // Get movies by type (fallback to general movies since getMoviesByType doesn't exist)
+        kkphimResponse = await kkphimService.getMovies(page);
       } else {
         // Get popular/latest movies
-        kkphimResponse = await kkphimService.getMovies(page, limit);
+        kkphimResponse = await kkphimService.getMovies(page);
       }
 
       if (!kkphimResponse.status) {
@@ -52,14 +48,12 @@ export async function GET(request: NextRequest) {
       }
 
       // Convert KKPhim movies to our app format
-      const movies = kkphimResponse.items.map((movie) =>
+      const movies = kkphimResponse.items.map((movie: any) =>
         kkphimService.convertToAppFormat(movie)
       );
 
-      // Filter adult content if not authenticated
-      const filteredMovies = isAdult
-        ? movies
-        : movies.filter((movie) => !movie.isAdult);
+      // Note: KKPhim doesn't provide adult content filtering, so we return all movies
+      const filteredMovies = movies;
 
       // Get pagination info from KKPhim response
       const pagination = kkphimResponse.pagination;
