@@ -139,12 +139,19 @@ const fetchWatchData = async (
   resolution: string = "720p",
   episode?: string
 ): Promise<WatchData> => {
-  const response = await fetch(`/api/watch/${movieSlug}`, {
-    method: "POST",
+  // Build query string for GET request
+  const params = new URLSearchParams();
+  if (resolution) params.append("resolution", resolution);
+  if (episode) params.append("episode", episode);
+
+  const queryString = params.toString();
+  const url = `/api/watch/${movieSlug}${queryString ? `?${queryString}` : ""}`;
+
+  const response = await fetch(url, {
+    method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ resolution, episode }),
   });
 
   if (!response.ok) {

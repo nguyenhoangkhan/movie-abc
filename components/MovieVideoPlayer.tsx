@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Play,
   Pause,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWatchData } from "@/hooks/useMovies";
+import Hls from "hls.js";
 
 interface VideoSource {
   quality: string;
@@ -34,6 +35,7 @@ export default function MovieVideoPlayer({
   className = "",
 }: MovieVideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
@@ -55,6 +57,99 @@ export default function MovieVideoPlayer({
 
   const currentVideoUrl = watchData?.videoUrl;
   const hasVideo = watchData?.hasVideo;
+
+  console.log("MovieVideoPlayer Debug:", {
+    movieSlug,
+    selectedQuality,
+    episodeSlug,
+    watchData,
+    isLoading,
+    isError,
+    error: error?.message,
+    currentVideoUrl,
+    hasVideo,
+  });
+
+  // HLS.js integration for M3U8 streams
+  useEffect(() => {
+    if (!videoRef.current || !currentVideoUrl) return;
+
+    const video = videoRef.current;
+
+    // Check if the URL is M3U8 (HLS stream)
+    const isM3U8 = currentVideoUrl.includes(".m3u8");
+
+    // Clean up previous HLS instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    if (isM3U8 && Hls.isSupported()) {
+      // Use HLS.js for M3U8 streams
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true,
+        backBufferLength: 90,
+      });
+
+      hlsRef.current = hls;
+
+      hls.loadSource(currentVideoUrl);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        console.log(
+          "HLS manifest loaded, found",
+          hls.levels.length,
+          "quality levels"
+        );
+      });
+
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        console.error("HLS error:", data);
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              console.log("fatal network error encountered, try to recover");
+              hls.startLoad();
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              console.log("fatal media error encountered, try to recover");
+              hls.recoverMediaError();
+              break;
+            default:
+              hls.destroy();
+              hlsRef.current = null;
+              break;
+          }
+        }
+      });
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      // Safari native HLS support
+      video.src = currentVideoUrl;
+    } else if (!isM3U8) {
+      // Regular video files (MP4, WebM, etc.)
+      video.src = currentVideoUrl;
+    } else {
+      console.error("HLS is not supported in this browser");
+    }
+
+    // Cleanup on unmount or URL change
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [currentVideoUrl]);
+
+  // Reset playing state when video URL changes
+  useEffect(() => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+  }, [currentVideoUrl]);
 
   // Handle video not available case
   if (!isLoading && (!hasVideo || !currentVideoUrl)) {
@@ -189,11 +284,12 @@ export default function MovieVideoPlayer({
         <video
           ref={videoRef}
           className="w-full h-full object-contain"
-          src={currentVideoUrl}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
+          controls={false}
+          preload="metadata"
         />
       ) : !isError ? (
         <div className="w-full h-full flex items-center justify-center bg-gray-900">
