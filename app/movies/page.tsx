@@ -63,14 +63,14 @@ function MoviesContent() {
           <div className="text-center py-12">
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
             <h2 className="text-2xl font-bold text-foreground mb-4">
-              Có lỗi xảy ra
+              Something went wrong
             </h2>
             <p className="text-muted-foreground mb-6">
-              {error?.message || "Không thể tải danh sách phim"}
+              {error?.message || "Unable to load movies"}
             </p>
             <Button onClick={handleRefresh} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
-              Thử lại
+              Try Again
             </Button>
           </div>
         </div>

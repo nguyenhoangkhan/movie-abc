@@ -75,6 +75,38 @@ export interface KKPhimMovieDetail {
 class KKPhimService {
   private baseUrl = KKPHIM_BASE_URL;
 
+  // Map English genre names to Vietnamese slugs
+  private genreMap: { [key: string]: string } = {
+    Drama: "chinh-kich",
+    Action: "hanh-dong",
+    Comedy: "hai-huoc",
+    Romance: "tinh-cam",
+    Horror: "kinh-di",
+    Thriller: "gay-can",
+    Crime: "hinh-su",
+    Mystery: "bi-an",
+    "Sci-Fi": "khoa-hoc",
+    Fantasy: "vien-tuong",
+    Adventure: "phieu-luu",
+    Animation: "hoat-hinh",
+    Family: "gia-dinh",
+    Documentary: "tai-lieu",
+    War: "chien-tranh",
+    History: "lich-su",
+    Music: "am-nhac",
+    Sport: "the-thao",
+    Biography: "tieu-su",
+    Western: "vien-tay",
+    Musical: "ca-nhac",
+    News: "thoi-su",
+    Reality: "truyen-hinh-thuc-te",
+    "Talk-Show": "talk-show",
+    "Game-Show": "game-show",
+    Variety: "giai-tri",
+    Short: "phim-ngan",
+    Adult: "18+",
+  };
+
   private getHeaders() {
     return {
       accept: "*/*",
@@ -91,7 +123,8 @@ class KKPhimService {
       "sec-fetch-mode": "cors",
       "sec-fetch-site": "cross-site",
       "sec-gpc": "1",
-      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+      "user-agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
       Cookie: "ci_session=9geriqb5h53aenf8la39bvn3qitnlpm9",
     };
   }
@@ -115,10 +148,16 @@ class KKPhimService {
     }
   }
 
-  async getMoviesByCategory(category: string, page: number = 1): Promise<KKPhimResponse> {
+  async getMoviesByCategory(
+    category: string,
+    page: number = 1
+  ): Promise<KKPhimResponse> {
     try {
+      // Convert English genre name to Vietnamese slug
+      const categorySlug = this.genreMap[category] || category.toLowerCase();
+
       const response = await fetch(
-        `${this.baseUrl}/v1/api/the-loai/${category}?page=${page}`,
+        `${this.baseUrl}/v1/api/the-loai/${categorySlug}?page=${page}`,
         {
           headers: this.getHeaders(),
           next: { revalidate: 300 },
@@ -127,17 +166,40 @@ class KKPhimService {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      return await response.json();
+      const data = await response.json();
+
+      // Check if API returned success
+      if (!data.status) {
+        throw new Error(data.msg || `Category "${category}" not found`);
+      }
+
+      // Return in expected format
+      return {
+        status: data.status,
+        msg: data.msg,
+        items: data.data.items || [],
+        pagination: data.data.params?.pagination || {
+          totalItems: 0,
+          totalItemsPerPage: 10,
+          currentPage: page,
+          totalPages: 0,
+        },
+      };
     } catch (error) {
       console.error("Error fetching movies by category:", error);
       throw error;
     }
   }
 
-  async searchMovies(keyword: string, page: number = 1): Promise<KKPhimResponse> {
+  async searchMovies(
+    keyword: string,
+    page: number = 1
+  ): Promise<KKPhimResponse> {
     try {
       const response = await fetch(
-        `${this.baseUrl}/v1/api/tim-kiem?keyword=${encodeURIComponent(keyword)}&page=${page}`,
+        `${this.baseUrl}/v1/api/tim-kiem?keyword=${encodeURIComponent(
+          keyword
+        )}&page=${page}`,
         {
           headers: this.getHeaders(),
           next: { revalidate: 60 },

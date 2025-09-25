@@ -160,9 +160,10 @@ export default function MovieVideoPlayer({
         <div className="flex items-center justify-center h-96">
           <div className="text-center text-white">
             <AlertCircle className="h-16 w-16 mx-auto mb-4 text-yellow-500" />
-            <h3 className="text-xl font-semibold mb-2">Video không khả dụng</h3>
+            <h3 className="text-xl font-semibold mb-2">Video Not Available</h3>
             <p className="text-gray-300 mb-4">
-              {watchData?.message || "Phim này hiện tại không có video để phát"}
+              {watchData?.message ||
+                "This movie currently has no video available"}
             </p>
             {tmdbInfo && (
               <div className="text-sm text-gray-400 space-y-1">
@@ -263,11 +264,11 @@ export default function MovieVideoPlayer({
       >
         <div className="text-center text-white">
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
-          <h3 className="text-xl font-semibold mb-2">Không thể tải video</h3>
+          <h3 className="text-xl font-semibold mb-2">Unable to Load Video</h3>
           <p className="text-gray-300 mb-4">
-            {error?.message || "Lỗi không xác định"}
+            {error?.message || "Unknown error"}
           </p>
-          <p className="text-sm text-gray-400">Vui lòng thử lại sau</p>
+          <p className="text-sm text-gray-400">Please try again later</p>
         </div>
       </div>
     );
@@ -295,7 +296,7 @@ export default function MovieVideoPlayer({
         <div className="w-full h-full flex items-center justify-center bg-gray-900">
           <div className="text-center text-white">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-            <p>Đang tải video...</p>
+            <p>Loading video...</p>
           </div>
         </div>
       ) : null}

@@ -51,7 +51,7 @@ export default function EpisodeList({
         <div>
           <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
             <Play className="h-6 w-6 mr-2" />
-            Danh sách tập ({episodes.length} tập)
+            Episodes ({episodes.length} episodes)
           </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
@@ -79,7 +79,7 @@ export default function EpisodeList({
         <div>
           <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
             <Star className="h-6 w-6 mr-2" />
-            Phim đề xuất
+            Recommended Movies
           </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -143,19 +143,19 @@ export default function EpisodeList({
       {/* Additional Episodes Info for Series */}
       {hasEpisodes && (
         <div className="mt-8 p-4 bg-gray-900 rounded-lg">
-          <h3 className="text-white font-semibold mb-2">Thông tin series</h3>
+          <h3 className="text-white font-semibold mb-2">Series Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
-              <span className="text-gray-400">Tên phim: </span>
+              <span className="text-gray-400">Movie Title: </span>
               <span className="text-white">{movieTitle}</span>
             </div>
             <div>
-              <span className="text-gray-400">Tổng số tập: </span>
-              <span className="text-white">{episodes.length} tập</span>
+              <span className="text-gray-400">Total Episodes: </span>
+              <span className="text-white">{episodes.length} episodes</span>
             </div>
             <div>
-              <span className="text-gray-400">Trạng thái: </span>
-              <span className="text-green-400">Hoàn thành</span>
+              <span className="text-gray-400">Status: </span>
+              <span className="text-green-400">Completed</span>
             </div>
           </div>
         </div>

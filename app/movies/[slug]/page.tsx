@@ -105,7 +105,7 @@ export default function MovieDetailPage() {
         <div className="flex items-center justify-center min-h-[80vh]">
           <div className="text-center text-white">
             <Loader2 className="animate-spin h-12 w-12 text-white mx-auto mb-4" />
-            <p>Đang tải thông tin phim...</p>
+            <p>Loading movie information...</p>
           </div>
         </div>
         <Footer />
@@ -121,11 +121,11 @@ export default function MovieDetailPage() {
           <div className="text-center">
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
             <h2 className="text-2xl font-bold text-white mb-4">
-              Không tìm thấy phim
+              Movie Not Found
             </h2>
             <p className="text-gray-300 mb-6 max-w-md">
               {error?.message ||
-                "Phim bạn tìm kiếm không tồn tại hoặc đã bị gỡ"}
+                "The movie you're looking for does not exist or has been removed"}
             </p>
             <Button
               onClick={() => router.back()}
@@ -133,7 +133,7 @@ export default function MovieDetailPage() {
               className="text-white border-white hover:bg-white hover:text-black"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Quay lại
+              Go Back
             </Button>
           </div>
         </div>

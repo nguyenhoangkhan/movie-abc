@@ -212,7 +212,7 @@ export default function MovieInfo({ movie, onPlayClick }: MovieInfoProps) {
                 className="border-white text-white hover:bg-white hover:text-black px-8 py-3"
               >
                 <Star className="h-5 w-5 mr-2" />
-                Yêu thích
+                Add to Favorites
               </Button> */}
             </div>
 
