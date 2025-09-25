@@ -232,13 +232,25 @@ class KKPhimService {
   }
 
   convertToAppFormat(kkphimMovie: KKPhimMovie) {
+    // Helper function to convert relative image paths to absolute URLs
+    const getImageUrl = (path: string | undefined): string | undefined => {
+      if (!path) return undefined;
+      if (path.startsWith("http://") || path.startsWith("https://")) {
+        return path; // Already absolute URL
+      }
+      if (path.startsWith("/")) {
+        return `https://phimimg.com${path}`; // Absolute path
+      }
+      return `https://phimimg.com/${path}`; // Relative path
+    };
+
     return {
       id: kkphimMovie._id,
       title: kkphimMovie.name,
       originalTitle: kkphimMovie.origin_name,
       description: kkphimMovie.content || "",
-      thumbnail: kkphimMovie.poster_url,
-      poster: kkphimMovie.thumb_url,
+      thumbnail: getImageUrl(kkphimMovie.poster_url),
+      poster: getImageUrl(kkphimMovie.thumb_url),
       year: kkphimMovie.year,
       rating: kkphimMovie.tmdb?.vote_average || 0,
       genre: kkphimMovie.category?.map((cat) => cat.name) || [],
